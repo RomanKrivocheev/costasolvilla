@@ -101,7 +101,7 @@ const SiteHeader = () => {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="cursor-pointer" variant="outline" size="sm">
+                <Button className="cursor-pointer" variant="outline">
                   {lang.toUpperCase()}
                 </Button>
               </DropdownMenuTrigger>
