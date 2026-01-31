@@ -9,8 +9,6 @@ export const dictionaries = {
 
     labelTheme: 'Tema',
     labelLanguage: 'Idioma',
-    themeLightMode: 'Modo claro',
-    themeDarkMode: 'Modo oscuro',
   },
   en: {
     brand: 'CostaSolVilla',
@@ -22,8 +20,6 @@ export const dictionaries = {
 
     labelTheme: 'Theme',
     labelLanguage: 'Language',
-    themeLightMode: 'Light mode',
-    themeDarkMode: 'Dark mode',
   },
   ru: {
     brand: 'CostaSolVilla',
@@ -35,8 +31,6 @@ export const dictionaries = {
 
     labelTheme: 'Тема',
     labelLanguage: 'Язык',
-    themeLightMode: 'Светлая тема',
-    themeDarkMode: 'Тёмная тема',
   },
 } as const;
 

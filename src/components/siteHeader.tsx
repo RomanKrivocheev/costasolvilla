@@ -84,8 +84,8 @@ const SiteHeader = () => {
               aria-label="Toggle theme"
               className="cursor-pointer"
             >
-              <Moon className="h-4 w-4 dark:hidden" />
-              <Sun className="hidden h-4 w-4 dark:block" />
+              <Sun className="h-4 w-4 dark:hidden" />
+              <Moon className="hidden h-4 w-4 dark:block" />
             </Button>
           </div>
 
@@ -122,10 +122,18 @@ const SiteHeader = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>{t.labelTheme}</DropdownMenuLabel>
-                <DropdownMenuItem onClick={toggleTheme}>
-                  {theme === 'dark' ? t.themeLightMode : t.themeDarkMode}
-                </DropdownMenuItem>
+                <div className="flex items-center justify-between px-2 py-1.5">
+                  <span className="text-sm font-semibold">{t.labelTheme}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleTheme}
+                    aria-label="Toggle theme"
+                  >
+                    <Sun className="h-4 w-4 dark:hidden" />
+                    <Moon className="hidden h-4 w-4 dark:block" />
+                  </Button>
+                </div>
 
                 <DropdownMenuSeparator />
 
