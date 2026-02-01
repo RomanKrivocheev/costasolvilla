@@ -162,26 +162,26 @@ const SiteHeader = () => {
           </Link>
 
           <div className="text-xs text-foreground/70 leading-tight flex items-center gap-2 min-w-0 whitespace-nowrap">
-            <span className="min-w-0 overflow-hidden text-ellipsis">
+            <span className="flex-1 min-w-0 overflow-hidden text-ellipsis">
               <span className="sm:hidden">Fuengirola</span>
               <span className="hidden sm:inline">Fuengirola, Málaga</span>
             </span>
 
-            <span className="shrink-0">•</span>
-
-            <span className="shrink-0 inline-flex items-center gap-1">
-              {weatherCode == null ? null : <WeatherIcon code={weatherCode} />}
-              <span>
-                {temperatureC == null ? '—°' : `${Math.round(temperatureC)}°`}
+            <div className="ml-auto flex items-center gap-2 shrink-0">
+              <span className="inline-flex items-center gap-1">
+                {weatherCode == null ? null : (
+                  <WeatherIcon code={weatherCode} />
+                )}
+                <span>
+                  {temperatureC == null ? '—°' : `${Math.round(temperatureC)}°`}
+                </span>
               </span>
-            </span>
 
-            <span className="shrink-0">•</span>
-
-            <span className="shrink-0 inline-flex items-center gap-1 tabular-nums">
-              <Clock className="h-3.5 w-3.5" aria-label="Time" />
-              <span>{clock}</span>
-            </span>
+              <span className="inline-flex items-center gap-1 tabular-nums">
+                <Clock className="h-3.5 w-3.5" />
+                <span>{clock}</span>
+              </span>
+            </div>
           </div>
         </div>
 
