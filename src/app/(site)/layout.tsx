@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import SiteHeader from '@/components/siteHeader';
+import { SiteFooter } from '@/components/SiteFooter';
 
 const SiteLayout = ({ children }: { children: ReactNode }) => {
   return (
@@ -7,6 +8,8 @@ const SiteLayout = ({ children }: { children: ReactNode }) => {
       <SiteHeader />
 
       <main className="flex-1 px-4 sm:px-6 lg:px-12 py-6">{children}</main>
+
+      <SiteFooter />
     </div>
   );
 };
