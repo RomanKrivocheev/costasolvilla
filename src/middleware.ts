@@ -9,13 +9,12 @@ const detectLang = (req: NextRequest): Lang => {
   if (cookieLang && SUPPORTED.includes(cookieLang)) return cookieLang;
 
   const header = (req.headers.get('accept-language') || '').toLowerCase();
-
   if (header.includes('ru')) return 'ru';
   if (header.includes('en')) return 'en';
   return 'es';
 };
 
-export const proxy = (req: NextRequest) => {
+export default function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
 
   if (
@@ -33,22 +32,16 @@ export const proxy = (req: NextRequest) => {
     const res = NextResponse.redirect(url);
 
     if (!req.cookies.get('lang')) {
-      res.cookies.set('lang', detectLang(req), {
-        path: '/',
-        sameSite: 'lax',
-      });
+      res.cookies.set('lang', detectLang(req), { path: '/', sameSite: 'lax' });
     }
     return res;
   }
 
   if (!req.cookies.get('lang')) {
     const res = NextResponse.next();
-    res.cookies.set('lang', detectLang(req), {
-      path: '/',
-      sameSite: 'lax',
-    });
+    res.cookies.set('lang', detectLang(req), { path: '/', sameSite: 'lax' });
     return res;
   }
 
   return NextResponse.next();
-};
+}
