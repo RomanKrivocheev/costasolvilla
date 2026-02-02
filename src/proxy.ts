@@ -18,6 +18,16 @@ const detectLang = (req: NextRequest): Lang => {
 export const proxy = (req: NextRequest) => {
   const url = req.nextUrl.clone();
 
+  if (
+    url.pathname.startsWith('/_next/static') ||
+    url.pathname.startsWith('/_next/image') ||
+    url.pathname === '/favicon.ico' ||
+    url.pathname === '/robots.txt' ||
+    url.pathname === '/sitemap.xml'
+  ) {
+    return NextResponse.next();
+  }
+
   if (url.pathname === '/') {
     url.pathname = '/home';
     const res = NextResponse.redirect(url);
@@ -41,10 +51,4 @@ export const proxy = (req: NextRequest) => {
   }
 
   return NextResponse.next();
-};
-
-export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
-  ],
 };
