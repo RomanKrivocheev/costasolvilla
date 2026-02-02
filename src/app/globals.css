@@ -1,8 +1,28 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
+
+/* simple gradient background */
+.bg-noise {
+  background-color: var(--background);
+  background-image: radial-gradient(
+    circle at center,
+    var(--background) 0%,
+    var(--background) 55%,
+    color-mix(in oklab, var(--primary) 30%, var(--background)) 100%
+  );
+}
+
+.bg-noise-footer {
+  background-color: var(--background);
+  background-image: radial-gradient(
+    var(--background) 0%,
+    var(--background) 50%,
+    color-mix(in oklab, var(--primary) 30%, var(--background)) 100%
+  );
+}
 
 :root {
   --primary: #0b3d2e;
@@ -83,7 +103,7 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   --background: #0a0a0a;
   --foreground: #ededed;
   --primary: #7a3cff;

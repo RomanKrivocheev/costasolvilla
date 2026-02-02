@@ -12,7 +12,7 @@ export const SiteFooter = () => {
   const { t } = useLanguage();
 
   return (
-    <footer className="border-t border-foreground/10 bg-background">
+    <footer className="border-t border-foreground/10 bg-noise-footer">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6">
         <div className="flex flex-col gap-4 py-8 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

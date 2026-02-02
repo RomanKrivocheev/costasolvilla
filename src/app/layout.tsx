@@ -10,7 +10,7 @@ const RootLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <html lang={lang}>
-      <body>
+      <body className="bg-noise">
         <ThemeProvider>
           <LanguageProvider initialLang={lang}>{children}</LanguageProvider>
         </ThemeProvider>
