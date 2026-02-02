@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Lang } from '@/i18n/dictionaries';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { Dictionary, Lang } from '@/i18n/dictionaries';
+import { Playfair_Display } from 'next/font/google';
+
 import { useLanguage } from '@/providers/language-provider';
 import { useTheme } from '@/providers/themeProvider';
 import { Button } from '@/components/ui/button';
@@ -16,6 +18,7 @@ import {
   CloudRain,
   CloudSnow,
   CloudSun,
+  MapPin,
   Menu,
   Moon,
   Settings,
@@ -32,6 +35,11 @@ import {
 } from '@/components/ui/dialog';
 
 import { fetchFuengirolaSnapshot } from '@/services/fuengirolaMeteo';
+
+const logoFont = Playfair_Display({
+  subsets: ['latin'],
+  weight: ['600', '700'],
+});
 
 const LANGS: Lang[] = ['es', 'en', 'ru'];
 
@@ -67,6 +75,20 @@ function WeatherIcon({ code }: { code: number }) {
   return <Cloud className="h-3.5 w-3.5" aria-label="Weather" />;
 }
 
+function getWeatherLabel(code: number, t: Dictionary) {
+  if (code === 0) return t.weatherSunny;
+  if (code === 1) return t.weatherMostlyClear;
+  if (code === 2) return t.weatherPartlyCloudy;
+  if (code === 3) return t.weatherCloudy;
+  if (code === 45 || code === 48) return t.weatherFog;
+  if (code >= 51 && code <= 57) return t.weatherDrizzle;
+  if (code >= 61 && code <= 67) return t.weatherRain;
+  if (code >= 71 && code <= 77) return t.weatherSnow;
+  if (code >= 80 && code <= 82) return t.weatherShowers;
+  if (code >= 95 && code <= 99) return t.weatherThunderstorm;
+  return t.weatherGeneric;
+}
+
 const SiteHeader = () => {
   const { t, lang, setLang } = useLanguage();
   const { theme, toggleTheme } = useTheme();
@@ -78,24 +100,27 @@ const SiteHeader = () => {
   const [openLang, setOpenLang] = useState(false);
   const [openMobileNav, setOpenMobileNav] = useState(false);
   const [openMobileSettings, setOpenMobileSettings] = useState(false);
+  const [openWebcam, setOpenWebcam] = useState(false);
 
   // Fuengirola info (fetched once)
   const [temperatureC, setTemperatureC] = useState<number | null>(null);
   const [weatherCode, setWeatherCode] = useState<number | null>(null);
   const [clock, setClock] = useState<string>('—:—');
+  const [webcamEmbed, setWebcamEmbed] = useState<string | null>(null);
+  const [webcamTitle, setWebcamTitle] = useState<string>('Fuengirola webcam');
 
-  const navItems = [
-    { href: '/home', label: t.navHome },
-    { href: '/overview', label: t.navOverview },
-    { href: '/map', label: t.navMap },
-    { href: '/availability', label: t.navAvailability },
-    { href: '/useful-information', label: t.navUsefulInfo },
-    { href: '/prices', label: t.navPrices },
-    { href: '/gallery', label: t.navGallery },
-    { href: '/contact', label: t.navContact },
-  ];
+  const navItems = useMemo(
+    () => [
+      { href: '/home', label: t.navHome },
+      { href: '/overview', label: t.navOverview },
+      { href: '/map', label: t.navMap },
+      { href: '/prices', label: t.navPrices },
+      { href: '/gallery', label: t.navGallery },
+    ],
+    [t],
+  );
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = useCallback((href: string) => pathname === href, [pathname]);
 
   useEffect(() => {
     const run = async () => {
@@ -106,6 +131,31 @@ const SiteHeader = () => {
       } catch {
         setTemperatureC(null);
         setWeatherCode(null);
+      }
+    };
+
+    run();
+  }, []);
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const res = await fetch('/api/webcam/fuengirola', {
+          cache: 'no-store',
+        });
+        const data = (await res.json()) as {
+          ok?: boolean;
+          title?: string;
+          embed?: string | null;
+        };
+        if (data.ok && data.embed) {
+          setWebcamEmbed(data.embed);
+          setWebcamTitle(data.title ?? 'Fuengirola webcam');
+        } else {
+          setWebcamEmbed(null);
+        }
+      } catch {
+        setWebcamEmbed(null);
       }
     };
 
@@ -130,7 +180,7 @@ const SiteHeader = () => {
     const handleResize = () => updateIndicator();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [pathname, lang, theme, isActive, navItems]);
+  }, [pathname, lang, navItems, isActive]);
 
   const timeFormatter = useMemo(
     () =>
@@ -157,32 +207,135 @@ const SiteHeader = () => {
       <div className="flex h-16 items-center px-4 sm:px-6 lg:px-12">
         {/* Make this min-w-0 so the second line can stay single-line on mobile */}
         <div className="flex-1 min-w-0">
-          <Link href="/home" className="text-2xl font-bold text-primary">
+          <Link
+            href="/home"
+            className={`${logoFont.className} text-2xl font-bold tracking-wide bg-gradient-to-r from-secondary to-primary bg-clip-text text-transparent`}
+          >
             Costa Sol Villa
           </Link>
 
-          <div className="text-xs text-foreground/70 leading-tight flex items-center gap-2 min-w-0 whitespace-nowrap">
-            <span className="flex-1 min-w-0 overflow-hidden text-ellipsis">
-              <span className="sm:hidden">Fuengirola</span>
-              <span className="hidden sm:inline">Fuengirola, Málaga</span>
-            </span>
-
-            <div className="ml-auto flex items-center gap-2 shrink-0">
-              <span className="inline-flex items-center gap-1">
-                {weatherCode == null ? null : (
-                  <WeatherIcon code={weatherCode} />
-                )}
-                <span>
-                  {temperatureC == null ? '—°' : `${Math.round(temperatureC)}°`}
+          <Dialog open={openWebcam} onOpenChange={setOpenWebcam}>
+            <DialogTrigger asChild>
+              {/* Mobile info line (fixed, uses available space) */}
+              <div
+                className={`md:hidden cursor-pointer rounded-md py-1 text-xs text-foreground/70 leading-tight flex items-center gap-2 min-w-0 whitespace-nowrap transition-colors hover:bg-foreground/5 ${
+                  webcamEmbed ? 'blink-theme' : ''
+                }`}
+              >
+                <span className="flex-1 min-w-0 overflow-hidden text-ellipsis">
+                  {t.locationFuengirola}
                 </span>
-              </span>
 
-              <span className="inline-flex items-center gap-1 tabular-nums">
-                <Clock className="h-3.5 w-3.5" />
-                <span>{clock}</span>
-              </span>
-            </div>
-          </div>
+                <div className="ml-auto flex items-center gap-2 shrink-0">
+                  <span className="inline-flex items-center gap-1">
+                    {weatherCode == null ? null : (
+                      <WeatherIcon code={weatherCode} />
+                    )}
+                    <span>
+                      {temperatureC == null
+                        ? '—°'
+                        : `${Math.round(temperatureC)}°`}
+                    </span>
+                  </span>
+
+                  <span className="inline-flex items-center gap-1 tabular-nums">
+                    <Clock className="h-3.5 w-3.5" aria-label="Time" />
+                    <span>{clock}</span>
+                  </span>
+                </div>
+              </div>
+            </DialogTrigger>
+
+            <DialogTrigger asChild>
+              {/* Desktop info line */}
+              <div
+                className={`hidden md:flex cursor-pointer rounded-md py-1 text-xs text-foreground/70 leading-tight items-center gap-2 min-w-0 whitespace-nowrap transition-colors hover:bg-foreground/5 ${
+                  webcamEmbed ? 'blink-theme' : ''
+                }`}
+              >
+                <span className="min-w-0 overflow-hidden text-ellipsis">
+                  {t.locationFuengirolaMalaga}
+                </span>
+
+                <span className="shrink-0">•</span>
+
+                <span className="shrink-0 inline-flex items-center gap-1">
+                  {weatherCode == null ? null : (
+                    <WeatherIcon code={weatherCode} />
+                  )}
+                  <span>
+                    {temperatureC == null
+                      ? '—°'
+                      : `${Math.round(temperatureC)}°`}
+                  </span>
+                </span>
+
+                <span className="shrink-0">•</span>
+
+                <span className="shrink-0 inline-flex items-center gap-1 tabular-nums">
+                  <Clock className="h-3.5 w-3.5" aria-label="Time" />
+                  <span>{clock}</span>
+                </span>
+              </div>
+            </DialogTrigger>
+
+            <DialogContent className="w-[92vw] sm:max-w-[720px]">
+              <DialogHeader>
+                <DialogTitle>{webcamTitle}</DialogTitle>
+              </DialogHeader>
+
+              {webcamEmbed ? (
+                <div className="aspect-video overflow-hidden rounded-md border">
+                  {webcamEmbed.trim().startsWith('<') ? (
+                    <div
+                      className="h-full w-full"
+                      dangerouslySetInnerHTML={{ __html: webcamEmbed }}
+                    />
+                  ) : (
+                    <iframe
+                      src={webcamEmbed}
+                      className="h-full w-full"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      loading="lazy"
+                      title={webcamTitle}
+                    />
+                  )}
+                </div>
+              ) : null}
+
+              <div className="grid gap-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" aria-label="Location" />
+                  <span>{t.locationFuengirolaMalaga}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {weatherCode == null ? null : (
+                    <WeatherIcon code={weatherCode} />
+                  )}
+                  <span>
+                    {weatherCode == null
+                      ? t.weatherGeneric
+                      : getWeatherLabel(weatherCode, t)}
+                    {temperatureC == null
+                      ? ' · —°'
+                      : ` · ${Math.round(temperatureC)}°C`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" aria-label="Time" />
+                  <span>{clock}</span>
+                </div>
+
+                <div className="flex justify-end">
+                  <DialogClose asChild>
+                    <Button className="cursor-pointer" variant="ghost">
+                      {t.dialogClose}
+                    </Button>
+                  </DialogClose>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <nav
@@ -252,7 +405,7 @@ const SiteHeader = () => {
                 <div className="flex justify-end">
                   <DialogClose asChild>
                     <Button className="cursor-pointer" variant="ghost">
-                      Close
+                      {t.dialogClose}
                     </Button>
                   </DialogClose>
                 </div>
@@ -287,7 +440,7 @@ const SiteHeader = () => {
 
               <DialogContent className="w-[92vw] sm:max-w-[420px]">
                 <DialogHeader>
-                  <DialogTitle>Menu</DialogTitle>
+                  <DialogTitle>{t.dialogMenuTitle}</DialogTitle>
                 </DialogHeader>
 
                 <div className="grid gap-3">
@@ -313,7 +466,7 @@ const SiteHeader = () => {
                 <div className="flex justify-end">
                   <DialogClose asChild>
                     <Button className="cursor-pointer" variant="ghost">
-                      Close
+                      {t.dialogClose}
                     </Button>
                   </DialogClose>
                 </div>
@@ -337,7 +490,7 @@ const SiteHeader = () => {
 
               <DialogContent className="w-[92vw] sm:max-w-[420px]">
                 <DialogHeader>
-                  <DialogTitle>Settings</DialogTitle>
+                  <DialogTitle>{t.dialogSettingsTitle}</DialogTitle>
                 </DialogHeader>
 
                 <div className="grid gap-4">
@@ -379,7 +532,7 @@ const SiteHeader = () => {
                 <div className="flex justify-end">
                   <DialogClose asChild>
                     <Button className="cursor-pointer" variant="ghost">
-                      Close
+                      {t.dialogClose}
                     </Button>
                   </DialogClose>
                 </div>

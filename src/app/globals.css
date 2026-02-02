@@ -147,3 +147,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes blink-theme {
+  0%,
+  100% {
+    color: color-mix(in oklab, currentColor 85%, var(--color-secondary));
+  }
+  50% {
+    color: color-mix(in oklab, currentColor 35%, var(--color-secondary));
+  }
+}
+
+.blink-theme {
+  animation: blink-theme 4s ease-in-out infinite;
+}
