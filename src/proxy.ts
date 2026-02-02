@@ -14,7 +14,7 @@ const detectLang = (req: NextRequest): Lang => {
   return 'es';
 };
 
-export default function middleware(req: NextRequest) {
+export const proxy = (req: NextRequest) => {
   const url = req.nextUrl.clone();
 
   if (
@@ -44,4 +44,4 @@ export default function middleware(req: NextRequest) {
   }
 
   return NextResponse.next();
-}
+};
