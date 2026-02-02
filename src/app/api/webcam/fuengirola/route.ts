@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-export const revalidate = 60 * 10;
+export const revalidate = 600;
 
 const FUENGIROLA = { lat: 36.539, lng: -4.624 };
 const RADIUS_KM = 25;
