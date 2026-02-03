@@ -8,9 +8,9 @@ export const StickyCtaFooter = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="sticky bottom-10 sm:bottom-0 z-40 border-t border-foreground/10 bg-noise-footer">
+    <div className="fixed sm:sticky bottom-0 inset-x-0 z-50 border-t border-foreground/10 bg-noise-footer">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6">
-        <div className="flex items-center py-3">
+        <div className="flex items-center py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-3">
           <div className="hidden sm:block flex-1">
             <Link
               href="/home"
