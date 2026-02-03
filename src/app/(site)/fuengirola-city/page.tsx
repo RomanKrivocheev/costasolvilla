@@ -22,7 +22,7 @@ type Slide = {
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 type FolderMap = Record<string, Slide[]>;
 
-const OverviewCard = ({
+const FuengirolaCard = ({
   title,
   text,
   expanded,
@@ -55,34 +55,20 @@ const OverviewCard = ({
       <DialogTrigger asChild>
         <button
           type="button"
-          className="cursor-pointer w-full rounded-xl border border-foreground/10 bg-background p-4 text-left shadow-md shadow-black/15 dark:shadow-white/15 transition-all hover:-translate-y-0.5 hover:shadow-lg md:min-h-45"
+          className="cursor-pointer w-full rounded-xl border border-foreground/10 bg-background p-4 text-left shadow-md shadow-black/15 dark:shadow-white/15 transition-all hover:-translate-y-0.5 hover:shadow-lg md:min-h-[180px]"
         >
           <div className="flex flex-col gap-4 sm:flex-row">
-            <div className="relative w-full aspect-video sm:h-44 sm:w-88 md:h-52 md:w-104 shrink-0 overflow-hidden rounded-lg border border-foreground/10 bg-foreground/5">
+            <div className="relative w-full aspect-[16/9] sm:h-44 sm:w-[352px] md:h-52 md:w-[416px] shrink-0 overflow-hidden rounded-lg border border-foreground/10 bg-foreground/5">
               {finalCover ? (
-                <>
-                  {/* Blurred background fill */}
-                  <CldImage
-                    src={finalCover.publicId}
-                    alt=""
-                    fill
-                    className="object-cover scale-110 blur-xl opacity-30"
-                    quality="auto"
-                    format="auto"
-                    aria-hidden
-                  />
-
-                  {/* Main image (full, no crop) */}
-                  <CldImage
-                    src={finalCover.publicId}
-                    alt={title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, 416px"
-                    className="object-contain relative z-10"
-                    quality="auto"
-                    format="auto"
-                  />
-                </>
+                <CldImage
+                  src={finalCover.publicId}
+                  alt={title}
+                  fill
+                  sizes="(max-width: 640px) 100vw, 416px"
+                  className="object-cover"
+                  quality="auto"
+                  format="auto"
+                />
               ) : null}
             </div>
             <div className="flex flex-col justify-center">
@@ -95,7 +81,7 @@ const OverviewCard = ({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="w-[92vw] sm:max-w-225">
+      <DialogContent className="w-[92vw] sm:max-w-[900px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
@@ -108,19 +94,19 @@ const OverviewCard = ({
   );
 };
 
-const OverviewPage = () => {
+const FuengirolaCityPage = () => {
   const { t } = useLanguage();
   const cards = useMemo(
     () =>
       Array.from({ length: 10 }, (_, i) => {
         const index = i + 1;
         return {
-          folder: `OverviewCard${index}`,
-          sliderFolder: `OverviewCard${index}Extended`,
-          title: t[`overviewCard${index}Title` as keyof typeof t] as string,
-          text: t[`overviewText${index}` as keyof typeof t] as string,
+          folder: `FuengirolaCard${index}`,
+          sliderFolder: `FuengirolaCard${index}Extended`,
+          title: t[`fuengirolaCard${index}Title` as keyof typeof t] as string,
+          text: t[`fuengirolaText${index}` as keyof typeof t] as string,
           expanded: t[
-            `overviewTextExpanded${index}` as keyof typeof t
+            `fuengirolaTextExpanded${index}` as keyof typeof t
           ] as string,
         };
       }),
@@ -143,7 +129,7 @@ const OverviewPage = () => {
   return (
     <div>
       <FolderSlider
-        folder="OverviewSlider"
+        folder="FuengirolaSlider"
         ctaLabel={t.ctaBookNow}
         onCtaClick={() => {
           // booking logic
@@ -152,14 +138,14 @@ const OverviewPage = () => {
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 mt-5 space-y-2">
         <h1 className="text-4xl md:text-5xl font-semibold text-foreground">
-          {t.overviewTitle}
+          {t.fuengirolaTitle}
         </h1>
-        <p className="text-base text-foreground/70">{t.overviewIntro}</p>
+        <p className="text-base text-foreground/70">{t.fuengirolaIntro}</p>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 mt-6 space-y-3">
         {cards.map((card) => (
-          <OverviewCard
+          <FuengirolaCard
             key={card.folder}
             title={card.title}
             text={card.text}
@@ -180,4 +166,4 @@ const OverviewPage = () => {
   );
 };
 
-export default OverviewPage;
+export default FuengirolaCityPage;

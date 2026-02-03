@@ -12,6 +12,7 @@ const HomePage = () => {
     <div>
       <FolderSlider
         folder="HomeSlider"
+        autoplay
         ctaLabel={t.ctaBookNow}
         onCtaClick={() => {
           // booking logic

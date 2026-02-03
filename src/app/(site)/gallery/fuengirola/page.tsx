@@ -1,7 +1,12 @@
 'use client';
 
-import { useLanguage } from '@/providers/language-provider';
+import { useMemo } from 'react';
+import useSWR from 'swr';
+import { CldImage } from 'next-cloudinary';
+import Link from 'next/link';
 import { FolderSlider } from '@/components/FolderSlider';
+import { useLanguage } from '@/providers/language-provider';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,9 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { CldImage } from 'next-cloudinary';
-import { useMemo } from 'react';
-import useSWR from 'swr';
 
 type Slide = {
   publicId: string;
@@ -19,10 +21,11 @@ type Slide = {
   height: number;
 };
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 type FolderMap = Record<string, Slide[]>;
 
-const OverviewCard = ({
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+const GalleryCard = ({
   title,
   text,
   expanded,
@@ -55,13 +58,12 @@ const OverviewCard = ({
       <DialogTrigger asChild>
         <button
           type="button"
-          className="cursor-pointer w-full rounded-xl border border-foreground/10 bg-background p-4 text-left shadow-md shadow-black/15 dark:shadow-white/15 transition-all hover:-translate-y-0.5 hover:shadow-lg md:min-h-45"
+          className="cursor-pointer w-full rounded-xl border border-foreground/10 bg-background p-4 text-left shadow-md shadow-black/15 dark:shadow-white/15 transition-all hover:-translate-y-0.5 hover:shadow-lg"
         >
           <div className="flex flex-col gap-4 sm:flex-row">
             <div className="relative w-full aspect-video sm:h-44 sm:w-88 md:h-52 md:w-104 shrink-0 overflow-hidden rounded-lg border border-foreground/10 bg-foreground/5">
               {finalCover ? (
                 <>
-                  {/* Blurred background fill */}
                   <CldImage
                     src={finalCover.publicId}
                     alt=""
@@ -71,8 +73,6 @@ const OverviewCard = ({
                     format="auto"
                     aria-hidden
                   />
-
-                  {/* Main image (full, no crop) */}
                   <CldImage
                     src={finalCover.publicId}
                     alt={title}
@@ -108,19 +108,21 @@ const OverviewCard = ({
   );
 };
 
-const OverviewPage = () => {
+const GalleryFuengirolaPage = () => {
   const { t } = useLanguage();
   const cards = useMemo(
     () =>
       Array.from({ length: 10 }, (_, i) => {
         const index = i + 1;
         return {
-          folder: `OverviewCard${index}`,
-          sliderFolder: `OverviewCard${index}Extended`,
-          title: t[`overviewCard${index}Title` as keyof typeof t] as string,
-          text: t[`overviewText${index}` as keyof typeof t] as string,
+          folder: `GalleryFuengirola${index}`,
+          sliderFolder: `GalleryFuengirola${index}Extended`,
+          title: t[
+            `galleryFuengirolaCard${index}Title` as keyof typeof t
+          ] as string,
+          text: t[`galleryFuengirolaText${index}` as keyof typeof t] as string,
           expanded: t[
-            `overviewTextExpanded${index}` as keyof typeof t
+            `galleryFuengirolaTextExpanded${index}` as keyof typeof t
           ] as string,
         };
       }),
@@ -142,24 +144,23 @@ const OverviewPage = () => {
 
   return (
     <div>
-      <FolderSlider
-        folder="OverviewSlider"
-        ctaLabel={t.ctaBookNow}
-        onCtaClick={() => {
-          // booking logic
-        }}
-      />
-
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 mt-5 space-y-2">
-        <h1 className="text-4xl md:text-5xl font-semibold text-foreground">
-          {t.overviewTitle}
-        </h1>
-        <p className="text-base text-foreground/70">{t.overviewIntro}</p>
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 mt-6 space-y-2">
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-4xl md:text-5xl font-semibold text-foreground">
+            {t.galleryFuengirolaTitle}
+          </h1>
+          <Button asChild variant="outline" className="shrink-0">
+            <Link href="/gallery">{t.backLabel}</Link>
+          </Button>
+        </div>
+        <p className="text-base text-foreground/70">
+          {t.galleryFuengirolaIntro}
+        </p>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 mt-6 space-y-3">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         {cards.map((card) => (
-          <OverviewCard
+          <GalleryCard
             key={card.folder}
             title={card.title}
             text={card.text}
@@ -170,14 +171,13 @@ const OverviewPage = () => {
                 : null
             }
             folder={card.folder}
-            enableFallback={!!folderMap}
+            enableFallback={false}
             sliderFolder={card.sliderFolder}
           />
         ))}
       </section>
-
     </div>
   );
 };
 
-export default OverviewPage;
+export default GalleryFuengirolaPage;

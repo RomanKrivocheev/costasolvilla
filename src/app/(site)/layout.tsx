@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import SiteHeader from '@/components/siteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
+import { StickyCtaFooter } from '@/components/StickyCtaFooter';
 
 const SiteLayout = ({ children }: { children: ReactNode }) => {
   return (
@@ -10,6 +11,8 @@ const SiteLayout = ({ children }: { children: ReactNode }) => {
       <main className="flex-1 px-4 sm:px-6 lg:px-12 py-6 shadow-[0_32px_80px_-40px_rgba(0,0,0,0.6)] dark:shadow-[0_32px_80px_-40px_rgba(255,255,255,0.18)]">
         {children}
       </main>
+
+      <StickyCtaFooter />
 
       <SiteFooter />
     </div>

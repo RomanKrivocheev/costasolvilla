@@ -113,6 +113,7 @@ const SiteHeader = () => {
     () => [
       { href: '/home', label: t.navHome },
       { href: '/overview', label: t.navOverview },
+      { href: '/fuengirola-city', label: t.navFuengirolaCity },
       { href: '/map', label: t.navMap },
       { href: '/prices', label: t.navPrices },
       { href: '/gallery', label: t.navGallery },
@@ -120,7 +121,13 @@ const SiteHeader = () => {
     [t],
   );
 
-  const isActive = useCallback((href: string) => pathname === href, [pathname]);
+  const isActive = useCallback(
+    (href: string) => {
+      if (href === '/gallery') return pathname.startsWith('/gallery');
+      return pathname === href;
+    },
+    [pathname],
+  );
 
   useEffect(() => {
     const run = async () => {
@@ -444,11 +451,14 @@ const SiteHeader = () => {
                 </DialogHeader>
 
                 <div className="grid gap-3">
-                  <Button variant="secondary" className="w-full cursor-pointer">
+                  <Button
+                    variant="secondary"
+                    className="w-full cursor-pointer mb-4"
+                  >
                     {t.ctaBookNow}
                   </Button>
 
-                  <div className="grid">
+                  <div className="grid space-y-4">
                     {navItems.map((item) => (
                       <Button
                         key={item.href}

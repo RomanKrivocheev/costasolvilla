@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { listImagesInFolder } from '@/services/cloudinary';
 
 export const runtime = 'nodejs';
+export const revalidate = 600;
 
 export const GET = async (req: Request) => {
   const { searchParams } = new URL(req.url);
@@ -12,5 +13,9 @@ export const GET = async (req: Request) => {
   }
 
   const images = await listImagesInFolder(folder);
-  return NextResponse.json(images);
+  return NextResponse.json(images, {
+    headers: {
+      'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=86400',
+    },
+  });
 };
