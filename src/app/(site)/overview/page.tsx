@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { CldImage } from 'next-cloudinary';
+import { CloudinaryImage } from '@/components/CloudinaryImage';
 import { useMemo } from 'react';
 import useSWR from 'swr';
 
@@ -73,7 +74,7 @@ const OverviewCard = ({
                   />
 
                   {/* Main image (full, no crop) */}
-                  <CldImage
+                  <CloudinaryImage
                     src={finalCover.publicId}
                     alt={title}
                     fill

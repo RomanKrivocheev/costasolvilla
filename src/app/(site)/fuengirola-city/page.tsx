@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { CldImage } from 'next-cloudinary';
+import { CloudinaryImage } from '@/components/CloudinaryImage';
 import { useMemo } from 'react';
 import useSWR from 'swr';
 
@@ -70,7 +71,7 @@ const FuengirolaCard = ({
                     format="auto"
                     aria-hidden
                   />
-                  <CldImage
+                  <CloudinaryImage
                     src={finalCover.publicId}
                     alt={title}
                     fill

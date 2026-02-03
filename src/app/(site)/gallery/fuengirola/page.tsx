@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import useSWR from 'swr';
 import { CldImage } from 'next-cloudinary';
+import { CloudinaryImage } from '@/components/CloudinaryImage';
 import Link from 'next/link';
 import { FolderSlider } from '@/components/FolderSlider';
 import { useLanguage } from '@/providers/language-provider';
@@ -73,7 +74,7 @@ const GalleryCard = ({
                     format="auto"
                     aria-hidden
                   />
-                  <CldImage
+                  <CloudinaryImage
                     src={finalCover.publicId}
                     alt={title}
                     fill

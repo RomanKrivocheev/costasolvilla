@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CldImage } from 'next-cloudinary';
+import { CloudinaryImage } from '@/components/CloudinaryImage';
 import Link from 'next/link';
 import { useLanguage } from '@/providers/language-provider';
 
@@ -80,7 +80,7 @@ export const HomeIntroBlocks = ({
           <div
             className={`${imageClass} ${hoverClass}`}
           >
-            <CldImage
+            <CloudinaryImage
               src={images[0].publicId}
               alt={resolvedBlocks[0].title}
               fill
@@ -105,7 +105,7 @@ export const HomeIntroBlocks = ({
           <div
             className={`${imageClass} ${hoverClass}`}
           >
-            <CldImage
+            <CloudinaryImage
               src={images[0].publicId}
               alt={resolvedBlocks[0].title}
               fill
@@ -136,7 +136,7 @@ export const HomeIntroBlocks = ({
           <div
             className={`md:order-2 ${imageClass} ${hoverClass}`}
           >
-            <CldImage
+            <CloudinaryImage
               src={images[1].publicId}
               alt={resolvedBlocks[1].title}
               fill
@@ -161,7 +161,7 @@ export const HomeIntroBlocks = ({
           <div
             className={`md:order-2 ${imageClass} ${hoverClass}`}
           >
-            <CldImage
+            <CloudinaryImage
               src={images[1].publicId}
               alt={resolvedBlocks[1].title}
               fill

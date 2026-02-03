@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
+import { CloudinaryImage } from '@/components/CloudinaryImage';
 import { Button } from '@/components/ui/button';
 import useSWR from 'swr';
 
@@ -153,7 +154,7 @@ export const FolderSlider = ({
               />
 
               {/* Main image */}
-              <CldImage
+              <CloudinaryImage
                 src={s.publicId}
                 alt="Costa Sol Villa"
                 fill

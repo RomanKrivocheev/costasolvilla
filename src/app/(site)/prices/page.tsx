@@ -16,7 +16,7 @@ const PricesPage = () => {
   ];
 
   return (
-    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 py-8">
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6">
       <h1 className="text-4xl md:text-5xl font-semibold text-center text-foreground">
         {t.pricingTitle}
       </h1>
