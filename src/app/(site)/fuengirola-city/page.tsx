@@ -58,17 +58,28 @@ const FuengirolaCard = ({
           className="cursor-pointer w-full rounded-xl border border-foreground/10 bg-background p-4 text-left shadow-md shadow-black/15 dark:shadow-white/15 transition-all hover:-translate-y-0.5 hover:shadow-lg md:min-h-[180px]"
         >
           <div className="flex flex-col gap-4 sm:flex-row">
-            <div className="relative w-full aspect-[16/9] sm:h-44 sm:w-[352px] md:h-52 md:w-[416px] shrink-0 overflow-hidden rounded-lg border border-foreground/10 bg-foreground/5">
+            <div className="relative w-full aspect-video sm:h-44 sm:w-88 md:h-52 md:w-104 shrink-0 overflow-hidden rounded-lg border border-foreground/10 bg-foreground/5">
               {finalCover ? (
-                <CldImage
-                  src={finalCover.publicId}
-                  alt={title}
-                  fill
-                  sizes="(max-width: 640px) 100vw, 416px"
-                  className="object-cover"
-                  quality="auto"
-                  format="auto"
-                />
+                <>
+                  <CldImage
+                    src={finalCover.publicId}
+                    alt=""
+                    fill
+                    className="object-cover scale-110 blur-xl opacity-30"
+                    quality="auto"
+                    format="auto"
+                    aria-hidden
+                  />
+                  <CldImage
+                    src={finalCover.publicId}
+                    alt={title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 416px"
+                    className="object-contain relative z-10"
+                    quality="auto"
+                    format="auto"
+                  />
+                </>
               ) : null}
             </div>
             <div className="flex flex-col justify-center">
@@ -156,7 +167,7 @@ const FuengirolaCityPage = () => {
                 : null
             }
             folder={card.folder}
-            enableFallback={!!folderMap}
+            enableFallback={false}
             sliderFolder={card.sliderFolder}
           />
         ))}

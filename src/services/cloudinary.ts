@@ -43,9 +43,11 @@ export const listImagesInFolders = async (
   maxResults = 500,
 ): Promise<Record<string, CloudinaryImage[]>> => {
   if (!folders.length) return {};
+  const foldersLower = folders.map((f) => f.toLowerCase());
+  const folderByLower = new Map(foldersLower.map((f, i) => [f, folders[i]]));
 
   const expression =
-    `(${folders.map((f) => `folder:\"${f}\"`).join(' OR ')})` +
+    `(${folders.map((f) => `folder:${f}`).join(' OR ')})` +
     ` AND resource_type:image`;
 
   const result = await cloudinary.search
@@ -60,14 +62,34 @@ export const listImagesInFolders = async (
 
   for (const r of result.resources as Array<{
     public_id: string;
+    folder?: string;
+    asset_folder?: string;
     width: number;
     height: number;
     created_at: string;
   }>) {
-    const match = folders.find((f) => r.public_id.startsWith(`${f}/`));
-    const folder = match ?? r.public_id.split('/').slice(0, -1).join('/');
-    if (!grouped[folder]) grouped[folder] = [];
-    grouped[folder].push({
+    const rawFolder =
+      r.folder ??
+      r.asset_folder ??
+      r.public_id.split('/').slice(0, -1).join('/');
+    const directMatch = folders.find(
+      (f) =>
+        rawFolder === f ||
+        rawFolder.startsWith(`${f}/`) ||
+        r.public_id.startsWith(`${f}/`),
+    );
+
+    const rawLower = rawFolder.toLowerCase();
+    const lowerMatch =
+      foldersLower.find((f) => rawLower === f || rawLower.startsWith(`${f}/`)) ??
+      undefined;
+    const caseMatch = lowerMatch ? folderByLower.get(lowerMatch) : undefined;
+
+    const match = directMatch ?? caseMatch;
+
+    const folderKey = match ?? rawFolder;
+    if (!grouped[folderKey]) grouped[folderKey] = [];
+    grouped[folderKey].push({
       publicId: r.public_id,
       width: r.width,
       height: r.height,

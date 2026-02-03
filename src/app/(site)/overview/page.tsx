@@ -170,7 +170,7 @@ const OverviewPage = () => {
                 : null
             }
             folder={card.folder}
-            enableFallback={!!folderMap}
+            enableFallback={false}
             sliderFolder={card.sliderFolder}
           />
         ))}

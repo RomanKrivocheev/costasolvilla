@@ -19,6 +19,7 @@ import {
   CloudSnow,
   CloudSun,
   MapPin,
+  Camera,
   Menu,
   Moon,
   Settings,
@@ -224,11 +225,7 @@ const SiteHeader = () => {
           <Dialog open={openWebcam} onOpenChange={setOpenWebcam}>
             <DialogTrigger asChild>
               {/* Mobile info line (fixed, uses available space) */}
-              <div
-                className={`md:hidden cursor-pointer rounded-md py-1 text-xs text-foreground/70 leading-tight flex items-center gap-2 min-w-0 whitespace-nowrap transition-colors hover:bg-foreground/5 ${
-                  webcamEmbed ? 'blink-theme' : ''
-                }`}
-              >
+              <div className="md:hidden cursor-pointer rounded-md py-1 text-xs text-foreground/70 leading-tight flex items-center gap-2 min-w-0 whitespace-nowrap transition-colors hover:bg-foreground/5">
                 <span className="flex-1 min-w-0 overflow-hidden text-ellipsis">
                   {t.locationFuengirola}
                 </span>
@@ -249,17 +246,20 @@ const SiteHeader = () => {
                     <Clock className="h-3.5 w-3.5" aria-label="Time" />
                     <span>{clock}</span>
                   </span>
+
+                  {webcamEmbed ? (
+                    <span className="inline-flex items-center gap-1 blink-theme">
+                      <Camera className="h-3.5 w-3.5" aria-label="Live" />
+                      <span>{t.watchLive}</span>
+                    </span>
+                  ) : null}
                 </div>
               </div>
             </DialogTrigger>
 
             <DialogTrigger asChild>
               {/* Desktop info line */}
-              <div
-                className={`hidden md:flex cursor-pointer rounded-md py-1 text-xs text-foreground/70 leading-tight items-center gap-2 min-w-0 whitespace-nowrap transition-colors hover:bg-foreground/5 ${
-                  webcamEmbed ? 'blink-theme' : ''
-                }`}
-              >
+              <div className="hidden md:flex cursor-pointer rounded-md py-1 text-xs text-foreground/70 leading-tight items-center gap-2 min-w-0 whitespace-nowrap transition-colors hover:bg-foreground/5">
                 <span className="min-w-0 overflow-hidden text-ellipsis">
                   {t.locationFuengirolaMalaga}
                 </span>
@@ -283,6 +283,16 @@ const SiteHeader = () => {
                   <Clock className="h-3.5 w-3.5" aria-label="Time" />
                   <span>{clock}</span>
                 </span>
+
+                {webcamEmbed ? (
+                  <>
+                    <span className="shrink-0">•</span>
+                    <span className="shrink-0 inline-flex items-center gap-1 blink-theme">
+                      <Camera className="h-3.5 w-3.5" aria-label="Live" />
+                      <span>{t.watchLive}</span>
+                    </span>
+                  </>
+                ) : null}
               </div>
             </DialogTrigger>
 

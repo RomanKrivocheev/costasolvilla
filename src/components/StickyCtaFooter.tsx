@@ -8,7 +8,7 @@ export const StickyCtaFooter = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="sticky bottom-0 z-40 border-t border-foreground/10 bg-noise-footer">
+    <div className="sticky bottom-10 sm:bottom-0 z-40 border-t border-foreground/10 bg-noise-footer">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6">
         <div className="flex items-center py-3">
           <div className="hidden sm:block flex-1">
