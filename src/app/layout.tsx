@@ -11,8 +11,12 @@ export const metadata: Metadata = {
     'Luxury seaside villa in Fuengirola with modern amenities, coastal views, and easy booking.',
   metadataBase: new URL('https://costasolvilla.com'),
   icons: {
-    icon: '/logoMetadataIcon.png',
+    icon: [
+      { url: '/favicon.ico', type: 'image/x-icon' },
+      { url: '/logoMetadataIcon.png', type: 'image/png' },
+    ],
     apple: '/logoMetadataIcon.png',
+    shortcut: '/favicon.ico',
   },
   openGraph: {
     title: 'Costa Sol Villa',
