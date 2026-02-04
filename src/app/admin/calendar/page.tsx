@@ -18,6 +18,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 type CalendarResponse = {
   year: string;
   defaultCost: number;
+  cleaningCost: number;
+  securityDeposit: number;
   prices: Record<string, number>;
   availability: Record<string, boolean>;
   discounts: Record<string, number>;
@@ -70,6 +72,8 @@ const AdminCalendarPage = () => {
   });
   const [inputCost, setInputCost] = useState('');
   const [defaultCostInput, setDefaultCostInput] = useState('100');
+  const [cleaningCostInput, setCleaningCostInput] = useState('0');
+  const [securityDepositInput, setSecurityDepositInput] = useState('0');
   const [saving, setSaving] = useState(false);
 
   const yearKey = useMemo(() => formatYearKey(monthDate), [monthDate]);
@@ -81,6 +85,8 @@ const AdminCalendarPage = () => {
   const prices = data?.prices ?? {};
   const availability = data?.availability ?? {};
   const defaultCost = data?.defaultCost ?? 100;
+  const cleaningCost = data?.cleaningCost ?? 0;
+  const securityDeposit = data?.securityDeposit ?? 0;
   const discountValues = data?.discounts ?? {};
 
   const cells = useMemo(() => buildCalendar(monthDate), [monthDate]);
@@ -90,6 +96,18 @@ const AdminCalendarPage = () => {
       setDefaultCostInput(String(data.defaultCost));
     }
   }, [data?.defaultCost]);
+
+  useEffect(() => {
+    if (data?.cleaningCost != null) {
+      setCleaningCostInput(String(data.cleaningCost));
+    }
+  }, [data?.cleaningCost]);
+
+  useEffect(() => {
+    if (data?.securityDeposit != null) {
+      setSecurityDepositInput(String(data.securityDeposit));
+    }
+  }, [data?.securityDeposit]);
 
   useEffect(() => {
     const next = {
@@ -114,7 +132,7 @@ const AdminCalendarPage = () => {
   useEffect(() => {
     setSelected(new Set());
     setRangeStart(null);
-  }, [yearKey, monthDate]);
+  }, [yearKey]);
 
   const selectRange = (start: string, end: string) => {
     const startDate = new Date(start);
@@ -134,6 +152,11 @@ const AdminCalendarPage = () => {
 
   const toggleDate = (dateKey: string) => {
     if (!rangeStart) {
+      if (selected.size === 1 && selected.has(dateKey)) {
+        setSelected(new Set());
+        setRangeStart(null);
+        return;
+      }
       setRangeStart(dateKey);
       setSelected(new Set([dateKey]));
       return;
@@ -232,13 +255,16 @@ const AdminCalendarPage = () => {
       remaining = 0;
     }
 
+    const finalTotal = discountedTotal + cleaningCost;
+
     return {
       costLines,
       total,
       discountedTotal,
+      finalTotal,
       discountLines,
     };
-  }, [selected, prices, defaultCost, discountValues]);
+  }, [selected, prices, defaultCost, discountValues, cleaningCost]);
 
   const selectedRange = useMemo(() => {
     if (!selected.size) return null;
@@ -304,9 +330,17 @@ const AdminCalendarPage = () => {
     }
   };
 
-  const saveDefaultCost = async () => {
-    const value = Number(defaultCostInput);
-    if (!Number.isFinite(value)) return;
+  const saveBaseCosts = async () => {
+    const defaultValue = Number(defaultCostInput);
+    const cleaningValue = Number(cleaningCostInput);
+    const depositValue = Number(securityDepositInput);
+    if (
+      !Number.isFinite(defaultValue) ||
+      !Number.isFinite(cleaningValue) ||
+      !Number.isFinite(depositValue)
+    ) {
+      return;
+    }
 
     setSaving(true);
     try {
@@ -315,7 +349,9 @@ const AdminCalendarPage = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          defaultCost: value,
+          defaultCost: defaultValue,
+          cleaningCost: cleaningValue,
+          securityDeposit: depositValue,
         }),
       });
       await mutate();
@@ -535,7 +571,7 @@ const AdminCalendarPage = () => {
 
                   <div className="mt-auto pt-4 space-y-2">
                     <div className="flex justify-between font-semibold">
-                      <span>{t.calendarTotal}</span>
+                      <span>{t.calendarSubtotalLabel}</span>
                       <span>€{selectedCosts.total}</span>
                     </div>
                     {selectedCosts.discountLines.length ? (
@@ -569,9 +605,23 @@ const AdminCalendarPage = () => {
                     ) : null}
                     {selectedCosts.discountLines.length ? (
                       <>
-                        <div className="flex justify-between font-semibold mb-2">
-                          <span>{t.calendarTotalAfterDiscount}</span>
-                          <span>€{selectedCosts.discountedTotal}</span>
+                        <div className="flex justify-between font-semibold mb-1">
+                          <span>{t.calendarTotalDiscountLabel}</span>
+                          <span>
+                            -€
+                            {selectedCosts.discountLines.reduce(
+                              (sum, line) => sum + line.amount,
+                              0,
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex justify-between font-semibold mb-1">
+                          <span>{t.calendarCleaningCostLabel}</span>
+                          <span>€{cleaningCost}</span>
+                        </div>
+                        <div className="flex justify-between font-semibold mb-2 text-xl">
+                          <span>{t.calendarTotalLabel}</span>
+                          <span>€{selectedCosts.finalTotal}</span>
                         </div>
                         <hr className="border-foreground/20 my-2" />
                       </>
@@ -665,14 +715,30 @@ const AdminCalendarPage = () => {
                 value={defaultCostInput}
                 onChange={(e) => setDefaultCostInput(e.target.value)}
               />
-              <Button
-                onClick={saveDefaultCost}
-                disabled={saving}
-                className="cursor-pointer"
-              >
-                {t.calendarSave}
-              </Button>
             </div>
+            <div className="text-sm text-foreground/70">
+              {t.calendarCleaningCostLabel}: €{cleaningCost}
+            </div>
+            <Input
+              type="number"
+              value={cleaningCostInput}
+              onChange={(e) => setCleaningCostInput(e.target.value)}
+            />
+            <div className="text-sm text-foreground/70">
+              {t.calendarSecurityDepositLabel}: €{securityDeposit}
+            </div>
+            <Input
+              type="number"
+              value={securityDepositInput}
+              onChange={(e) => setSecurityDepositInput(e.target.value)}
+            />
+            <Button
+              onClick={saveBaseCosts}
+              disabled={saving}
+              className="cursor-pointer w-full"
+            >
+              {t.calendarSave}
+            </Button>
           </CardContent>
         </Card>
       </div>

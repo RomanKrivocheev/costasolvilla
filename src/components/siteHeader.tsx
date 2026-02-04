@@ -22,7 +22,6 @@ import {
   Camera,
   Menu,
   Moon,
-  Settings,
   Sun,
 } from 'lucide-react';
 
@@ -100,7 +99,6 @@ const SiteHeader = () => {
 
   const [openLang, setOpenLang] = useState(false);
   const [openMobileNav, setOpenMobileNav] = useState(false);
-  const [openMobileSettings, setOpenMobileSettings] = useState(false);
   const [openWebcam, setOpenWebcam] = useState(false);
 
   // Fuengirola info (fetched once)
@@ -224,12 +222,12 @@ const SiteHeader = () => {
           <Dialog open={openWebcam} onOpenChange={setOpenWebcam}>
             <DialogTrigger asChild>
               {/* Mobile info line (fixed, uses available space) */}
-              <div className="md:hidden cursor-pointer rounded-md py-1 text-xs text-foreground/70 leading-tight flex items-center gap-2 min-w-0 whitespace-nowrap transition-colors hover:bg-foreground/5">
-                <span className="flex-1 min-w-0 overflow-hidden text-ellipsis">
+              <div className="md:hidden cursor-pointer rounded-md py-1 text-xs text-foreground/70 leading-tight flex items-center gap-1 min-w-0 transition-colors hover:bg-foreground/5">
+                <span className="min-w-0">
                   {t.locationFuengirola}
                 </span>
 
-                <div className="ml-auto flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   <span className="inline-flex items-center gap-1">
                     {weatherCode == null ? null : (
                       <WeatherIcon code={weatherCode} />
@@ -365,29 +363,18 @@ const SiteHeader = () => {
               ref={(el) => {
                 linkRefs.current[index] = el;
               }}
-              className={`text-base font-semibold transition-colors duration-300 ${
-                isActive(item.href)
-                  ? 'text-primary'
-                  : 'text-foreground/70 hover:text-foreground'
-              }`}
+              className="text-base font-semibold transition-colors duration-300 text-foreground/70 hover:text-foreground"
             >
               {item.label}
             </Link>
           ))}
-          <span
-            className="pointer-events-none absolute -bottom-1 h-0.5 rounded-full bg-primary transition-[transform,width] duration-300"
-            style={{
-              width: `${indicator.width}px`,
-              transform: `translateX(${indicator.left}px)`,
-            }}
-          />
         </nav>
 
-        <div className="flex flex-1 justify-end">
+        <div className="flex flex-none md:flex-1 justify-end">
           {/* Desktop */}
           <div className="hidden md:flex items-center gap-3">
-            <Button className="cursor-pointer" variant="secondary">
-              {t.ctaBookNow}
+            <Button className="cursor-pointer" variant="secondary" asChild>
+              <Link href="/book">{t.ctaBookNow}</Link>
             </Button>
 
             <Dialog open={openLang} onOpenChange={setOpenLang}>
@@ -463,8 +450,10 @@ const SiteHeader = () => {
                   <Button
                     variant="secondary"
                     className="w-full cursor-pointer mb-4"
+                    asChild
+                    onClick={() => setOpenMobileNav(false)}
                   >
-                    {t.ctaBookNow}
+                    <Link href="/book">{t.ctaBookNow}</Link>
                   </Button>
 
                   <div className="grid space-y-4">
@@ -492,60 +481,32 @@ const SiteHeader = () => {
               </DialogContent>
             </Dialog>
 
-            <Dialog
-              open={openMobileSettings}
-              onOpenChange={setOpenMobileSettings}
-            >
+            <Dialog open={openLang} onOpenChange={setOpenLang}>
               <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="Open settings"
-                  className="cursor-pointer"
-                >
-                  <Settings className="h-4 w-4" />
+                <Button className="cursor-pointer" variant="outline">
+                  {lang.toUpperCase()}
                 </Button>
               </DialogTrigger>
 
-              <DialogContent className="w-[92vw] sm:max-w-[420px]">
+              <DialogContent className="w-[92vw] sm:max-w-[360px]">
                 <DialogHeader>
-                  <DialogTitle>{t.dialogSettingsTitle}</DialogTitle>
+                  <DialogTitle>{t.labelLanguage}</DialogTitle>
                 </DialogHeader>
 
-                <div className="grid gap-4">
-                  <div className="flex items-center justify-between rounded-md border p-3">
-                    <span className="text-sm font-semibold">
-                      {t.labelTheme}
-                    </span>
+                <div className="grid gap-2">
+                  {LANGS.map((l) => (
                     <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={toggleTheme}
-                      aria-label="Toggle theme"
-                      className="cursor-pointer"
+                      key={l}
+                      variant={l === lang ? 'secondary' : 'outline'}
+                      className="justify-start cursor-pointer"
+                      onClick={() => {
+                        setLang(l);
+                        setOpenLang(false);
+                      }}
                     >
-                      <Sun className="h-4 w-4 dark:hidden" />
-                      <Moon className="hidden h-4 w-4 dark:block" />
+                      {l.toUpperCase()}
                     </Button>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <div className="text-sm font-semibold">
-                      {t.labelLanguage}
-                    </div>
-                    <div className="grid gap-2">
-                      {LANGS.map((l) => (
-                        <Button
-                          key={l}
-                          variant={l === lang ? 'secondary' : 'outline'}
-                          className="justify-start cursor-pointer"
-                          onClick={() => setLang(l)}
-                        >
-                          {l.toUpperCase()}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
+                  ))}
                 </div>
 
                 <div className="flex justify-end">
@@ -557,6 +518,17 @@ const SiteHeader = () => {
                 </div>
               </DialogContent>
             </Dialog>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleTheme}
+              aria-label="Toggle theme"
+              className="cursor-pointer"
+            >
+              <Sun className="h-4 w-4 dark:hidden" />
+              <Moon className="hidden h-4 w-4 dark:block" />
+            </Button>
           </div>
         </div>
       </div>

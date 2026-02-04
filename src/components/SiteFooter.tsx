@@ -14,7 +14,7 @@ export const SiteFooter = () => {
   return (
     <footer className="border-t border-foreground/10 bg-noise-footer">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6">
-        <div className="flex flex-col gap-4 py-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Button asChild variant="ghost" className="cursor-pointer">
               <Link
@@ -36,16 +36,19 @@ export const SiteFooter = () => {
               </Link>
             </Button>
           </div>
+
+          <div className="text-sm text-foreground/70 text-center sm:text-right">
+            <span className="hidden sm:inline">{t.licenseNumber}</span>
+            <span className="hidden sm:inline mx-2">•</span>
+            © {new Date().getFullYear()} {t.brand}
+          </div>
         </div>
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-between pb-2">
-          <div className="text-sm text-foreground/70 text-center sm:text-left">
+          <div className="text-sm text-foreground/70 text-center sm:text-left sm:hidden pb-24">
             <div>Calle Azalea, 10, 29640 Fuengirola, Málaga</div>
             <div className="mt-2">Cel: +34 642536101</div>
             <div>Email: costasolvilla1@gmail.com</div>
-          </div>
-
-          <div className="text-sm text-foreground/70 text-center sm:text-right sm:self-end">
-            © {new Date().getFullYear()} {t.brand}
+            <div>{t.licenseNumber}</div>
           </div>
         </div>
       </div>

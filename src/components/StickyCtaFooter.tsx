@@ -10,7 +10,7 @@ export const StickyCtaFooter = () => {
   return (
     <div className="fixed sm:sticky bottom-0 inset-x-0 z-50 border-t border-foreground/10 bg-noise-footer">
       <div className="mx-auto w-full px-2 sm:px-3">
-        <div className="flex items-center py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-3">
+        <div className="flex items-center gap-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-3">
           <div className="hidden sm:block flex-1">
             <Link
               href="/home"
@@ -20,19 +20,22 @@ export const StickyCtaFooter = () => {
             </Link>
           </div>
 
-          <div className="flex justify-center flex-1">
-            <Button
-              variant="secondary"
-              className="w-full sm:w-auto cursor-pointer"
-            >
-              {t.checkAvailability}
-            </Button>
-          </div>
-
-          <div className="hidden sm:flex flex-1 justify-end text-sm text-foreground/60">
+          <div className="hidden sm:flex flex-1 justify-center text-sm text-foreground/60 whitespace-nowrap">
             <span>{t.mapAddress}</span>
             <span className="mx-2">•</span>
             <span>{t.footerPhone}</span>
+            <span className="mx-2">•</span>
+            <span>{t.footerEmail}</span>
+          </div>
+
+          <div className="flex flex-1 justify-end">
+            <Button
+              variant="secondary"
+              className="w-full sm:w-auto cursor-pointer"
+              asChild
+            >
+              <Link href="/book">{t.checkAvailability}</Link>
+            </Button>
           </div>
         </div>
       </div>

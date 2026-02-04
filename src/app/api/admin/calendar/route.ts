@@ -4,6 +4,8 @@ import { kv } from '@vercel/kv';
 import { hasAdminSession } from '@/lib/admin-auth';
 
 const DEFAULT_COST_KEY = 'calendar:defaultCost';
+const CLEANING_COST_KEY = 'calendar:cleaningCost';
+const SECURITY_DEPOSIT_KEY = 'calendar:securityDeposit';
 const DISCOUNTS_KEY = 'calendar:discounts';
 
 const buildDateKey = (date: string) => `calendar:date:${date}`;
@@ -36,6 +38,8 @@ export const GET = async (req: Request) => {
       number | { cost?: number; available?: boolean } | null
     >;
     const defaultCost = (await kv.get<number>(DEFAULT_COST_KEY)) ?? 100;
+    const cleaningCost = (await kv.get<number>(CLEANING_COST_KEY)) ?? 0;
+    const securityDeposit = (await kv.get<number>(SECURITY_DEPOSIT_KEY)) ?? 0;
     const discounts =
       (await kv.get<Record<string, number>>(DISCOUNTS_KEY)) ?? {};
 
@@ -60,6 +64,8 @@ export const GET = async (req: Request) => {
     return NextResponse.json({
       year,
       defaultCost,
+      cleaningCost,
+      securityDeposit,
       prices,
       availability,
       discounts,
@@ -84,6 +90,8 @@ export const POST = async (req: Request) => {
       cost?: number;
       available?: boolean;
       defaultCost?: number;
+      cleaningCost?: number;
+      securityDeposit?: number;
       discounts?: Record<string, number>;
     };
 
@@ -91,6 +99,12 @@ export const POST = async (req: Request) => {
 
     if (typeof body.defaultCost === 'number') {
       tasks.push(kv.set(DEFAULT_COST_KEY, body.defaultCost));
+    }
+    if (typeof body.cleaningCost === 'number') {
+      tasks.push(kv.set(CLEANING_COST_KEY, body.cleaningCost));
+    }
+    if (typeof body.securityDeposit === 'number') {
+      tasks.push(kv.set(SECURITY_DEPOSIT_KEY, body.securityDeposit));
     }
     if (body.discounts && typeof body.discounts === 'object') {
       tasks.push(kv.set(DISCOUNTS_KEY, body.discounts));
