@@ -47,6 +47,10 @@ type BookingPayload = {
       totalAfterDiscount: number;
     };
   };
+  dateRange?: {
+    start?: string;
+    end?: string;
+  };
 };
 
 export const POST = async (req: Request) => {
@@ -154,6 +158,33 @@ export const POST = async (req: Request) => {
     `;
 
     const guests = body.guests ?? {};
+    const startDate = body.dateRange?.start ?? '';
+    const endDate = body.dateRange?.end ?? '';
+
+    const params = new URLSearchParams();
+    if (startDate) params.set('start', startDate);
+    if (endDate) params.set('end', endDate);
+    if (body.name?.trim()) params.set('name', body.name.trim());
+    if (body.email?.trim()) params.set('email', body.email.trim());
+    if (body.phone?.trim()) params.set('phone', body.phone.trim());
+    if (typeof guests.adults === 'number') {
+      params.set('adults', String(guests.adults));
+    }
+    if (typeof guests.kids === 'number') {
+      params.set('kids', String(guests.kids));
+    }
+    if (typeof guests.babies === 'number') {
+      params.set('babies', String(guests.babies));
+    }
+    if (body.summary?.totals?.totalAfterDiscount != null) {
+      params.set(
+        'total',
+        String(body.summary.totals.totalAfterDiscount),
+      );
+    }
+    if (body.summary?.totals?.cleaningCost != null) {
+      params.set('cleaning', String(body.summary.totals.cleaningCost));
+    }
 
     const html = `
       <div style="font-family: Arial, sans-serif; color: #111;">
@@ -184,7 +215,7 @@ export const POST = async (req: Request) => {
         </table>
         <div style="margin-top:16px;">
           <a
-            href="https://costasolvilla.com/admin/calendar"
+            href="https://costasolvilla.com/admin/calendar?${params.toString()}"
             style="display:inline-block;padding:10px 16px;background:#0b3d2e;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;"
           >
             Открыть календарь

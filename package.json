@@ -23,6 +23,7 @@
     "next-cloudinary": "^6.17.5",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "@react-pdf/renderer": "^4.0.2",
     "resend": "^6.9.1",
     "swr": "^2.2.5",
     "resend": "^4.0.0",

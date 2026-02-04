@@ -373,6 +373,12 @@ const BookPage = () => {
     return dateKey >= hoverRange.start && dateKey <= hoverRange.end;
   };
 
+  const selectedRange = useMemo(() => {
+    if (!selected.size) return null;
+    const dates = Array.from(selected).sort();
+    return { start: dates[0], end: dates[dates.length - 1] };
+  }, [selected]);
+
   const submitBooking = async () => {
     if (!canSubmit) {
       toast({ description: t.bookingFillRequiredToast });
@@ -409,6 +415,7 @@ const BookPage = () => {
               totalAfterDiscount: selectedCosts.finalTotal,
             },
           },
+          dateRange: selectedRange,
         }),
       });
 

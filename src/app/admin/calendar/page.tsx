@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
+import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/providers/language-provider';
+import { dictionaries, type Lang } from '@/i18n/dictionaries';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +16,23 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  PDFDownloadLink,
+  Font,
+} from '@react-pdf/renderer';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 type CalendarResponse = {
   year: string;
@@ -53,8 +72,203 @@ const buildCalendar = (monthDate: Date) => {
   return cells;
 };
 
+const LANGS: Lang[] = ['es', 'en', 'ru'];
+
+const pdfStyles = StyleSheet.create({
+  page: {
+    padding: 32,
+    fontSize: 11,
+    fontFamily: 'DejaVuSans',
+    color: '#111111',
+    lineHeight: 1.4,
+  },
+  content: {
+    position: 'relative',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 700,
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  infoLine: {
+    fontSize: 10,
+    color: '#4b5563',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  section: {
+    marginBottom: 14,
+  },
+  heading: {
+    fontSize: 12,
+    fontWeight: 700,
+    marginBottom: 4,
+  },
+  paragraph: {
+    marginBottom: 6,
+  },
+  listItem: {
+    marginLeft: 10,
+    marginBottom: 2,
+  },
+  divider: {
+    marginVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  hr: {
+    marginVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+});
+Font.register({
+  family: 'DejaVuSans',
+  fonts: [
+    { src: '/fonts/DejaVuSans.ttf', fontWeight: 400 },
+    { src: '/fonts/DejaVuSans-Bold.ttf', fontWeight: 700 },
+  ],
+});
+
+const pdfLocale: Record<Lang, string> = {
+  es: 'es-ES',
+  en: 'en-US',
+  ru: 'ru-RU',
+};
+
+const formatPdfDate = (value: string, lang: Lang) => {
+  if (!value) return '';
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(pdfLocale[lang], {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+};
+
+type PdfTotals = {
+  accommodation: number;
+  cleaning: number;
+  total: number;
+  deposit: number;
+  partialPayment: number;
+  remainingBalance: number;
+  paymentDate?: string;
+  balanceDueDate?: string;
+};
+
+type PdfData = {
+  startDate: string;
+  endDate: string;
+  nights: number;
+  guests: number;
+  mainGuest: string;
+  totals: PdfTotals;
+};
+
+const ReservationPdf = ({
+  languages,
+  data,
+}: {
+  languages: Lang[];
+  data: PdfData;
+}) => {
+  return (
+    <Document>
+      <Page size="A4" style={pdfStyles.page}>
+        <View style={pdfStyles.content}>
+          <Text style={pdfStyles.title}>Costa Sol Villa</Text>
+          <Text style={pdfStyles.infoLine}>{dictionaries.en.pdfAddress}</Text>
+          <Text style={pdfStyles.infoLine}>{dictionaries.en.footerPhone}</Text>
+          <Text style={pdfStyles.infoLine}>{dictionaries.en.footerEmail}</Text>
+          <View style={pdfStyles.hr} />
+
+          {languages.map((lang, index) => {
+            const t = dictionaries[lang];
+            return (
+              <View key={lang} wrap={false}>
+                <View style={pdfStyles.section}>
+                  <Text style={pdfStyles.paragraph}>
+                    {t.pdfReservationIntro} {t.pdfFromLabel}{' '}
+                    {formatPdfDate(data.startDate, lang)} ({t.pdfCheckInLabel}){' '}
+                    {t.pdfToLabel} {formatPdfDate(data.endDate, lang)} (
+                    {t.pdfCheckOutLabel}), {t.pdfTotalNightsLabel}{' '}
+                    {data.nights} {t.pdfNightsLabel}.
+                  </Text>
+                  <Text style={pdfStyles.paragraph}>
+                    {t.pdfGuestsLabel} {data.guests} {t.pdfPersonsLabel}.
+                  </Text>
+                  <Text style={pdfStyles.paragraph}>
+                    {t.pdfMainGuestLabel} {data.mainGuest}.
+                  </Text>
+                </View>
+
+                <View style={pdfStyles.section}>
+                  <Text style={pdfStyles.heading}>
+                    {t.pdfPriceBreakdownLabel}
+                  </Text>
+                  <Text style={pdfStyles.listItem}>
+                    • {t.pdfAccommodationPrice}: €{data.totals.accommodation}
+                  </Text>
+                  <Text style={pdfStyles.listItem}>
+                    • {t.pdfCleaningFee}: €{data.totals.cleaning}
+                  </Text>
+                  <Text style={pdfStyles.listItem}>
+                    • {t.pdfTotalAmount}: €{data.totals.total}
+                  </Text>
+                </View>
+
+                <View style={pdfStyles.section}>
+                  <Text style={pdfStyles.paragraph}>
+                    {t.pdfSecurityDepositLine.replace(
+                      '{deposit}',
+                      `€${data.totals.deposit}`,
+                    )}
+                  </Text>
+                  <Text style={pdfStyles.paragraph}>
+                    {t.pdfPartialPaymentLine.replace(
+                      '{amount}',
+                      `€${data.totals.partialPayment}`,
+                    )}{' '}
+                    {data.totals.paymentDate
+                      ? `(${t.pdfPaymentDateLabel} ${formatPdfDate(
+                          data.totals.paymentDate,
+                          lang,
+                        )})`
+                      : `(${t.pdfNotProvided})`}
+                  </Text>
+                  <Text style={pdfStyles.paragraph}>
+                    {t.pdfRemainingBalanceLine.replace(
+                      '{amount}',
+                      `€${data.totals.remainingBalance}`,
+                    )}{' '}
+                    {data.totals.balanceDueDate
+                      ? `${t.pdfBalanceDueLabel} ${formatPdfDate(
+                          data.totals.balanceDueDate,
+                          lang,
+                        )}.`
+                      : `${t.pdfBalanceDueLabel} ${t.pdfNotProvided}.`}
+                  </Text>
+                </View>
+
+                {index < languages.length - 1 ? (
+                  <View style={pdfStyles.hr} />
+                ) : null}
+              </View>
+            );
+          })}
+        </View>
+      </Page>
+    </Document>
+  );
+};
+
 const AdminCalendarPage = () => {
   const { t, lang, setLang } = useLanguage();
+  const searchParams = useSearchParams();
+  const urlAppliedRef = useRef(false);
   const [monthDate, setMonthDate] = useState(new Date());
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [rangeStart, setRangeStart] = useState<string | null>(null);
@@ -75,6 +289,17 @@ const AdminCalendarPage = () => {
   const [cleaningCostInput, setCleaningCostInput] = useState('0');
   const [securityDepositInput, setSecurityDepositInput] = useState('0');
   const [saving, setSaving] = useState(false);
+  const [pdfOpen, setPdfOpen] = useState(false);
+  const [pdfFullName, setPdfFullName] = useState('');
+  const [pdfEmail, setPdfEmail] = useState('');
+  const [pdfPhone, setPdfPhone] = useState('');
+  const [pdfAdults, setPdfAdults] = useState('1');
+  const [pdfKids, setPdfKids] = useState('0');
+  const [pdfBabies, setPdfBabies] = useState('0');
+  const [pdfPartialPayment, setPdfPartialPayment] = useState('');
+  const [pdfPartialPaymentDate, setPdfPartialPaymentDate] = useState('');
+  const [pdfBalanceDueDate, setPdfBalanceDueDate] = useState('');
+  const [pdfLanguages, setPdfLanguages] = useState<Set<Lang>>(new Set());
 
   const yearKey = useMemo(() => formatYearKey(monthDate), [monthDate]);
   const { data, mutate } = useSWR<CalendarResponse>(
@@ -133,6 +358,35 @@ const AdminCalendarPage = () => {
     setSelected(new Set());
     setRangeStart(null);
   }, [yearKey]);
+
+
+  useEffect(() => {
+    if (urlAppliedRef.current) return;
+    if (!searchParams) return;
+
+    const start = searchParams.get('start');
+    const end = searchParams.get('end');
+    const name = searchParams.get('name');
+    const email = searchParams.get('email');
+    const phone = searchParams.get('phone');
+    const adults = searchParams.get('adults');
+    const kids = searchParams.get('kids');
+    const babies = searchParams.get('babies');
+
+    if (!start || !end) return;
+    urlAppliedRef.current = true;
+
+    setSelected(selectRange(start, end));
+    setRangeStart(null);
+    setPdfFullName(name ?? '');
+    setPdfEmail(email ?? '');
+    setPdfPhone(phone ?? '');
+    if (adults) setPdfAdults(adults);
+    if (kids) setPdfKids(kids);
+    if (babies) setPdfBabies(babies);
+
+    setPdfOpen(true);
+  }, [searchParams]);
 
   const selectRange = (start: string, end: string) => {
     const startDate = new Date(start);
@@ -402,6 +656,61 @@ const AdminCalendarPage = () => {
     t.calendarSun,
   ];
 
+  const pdfCanGenerate =
+    selected.size > 0 &&
+    pdfFullName.trim().length > 0 &&
+    pdfEmail.trim().length > 0 &&
+    pdfPhone.trim().length > 0 &&
+    Number(pdfAdults || 0) >= 1 &&
+    pdfLanguages.size > 0;
+
+  const pdfLanguagesList = useMemo(
+    () => Array.from(pdfLanguages),
+    [pdfLanguages],
+  );
+
+  const pdfData = useMemo(() => {
+    const nights = selected.size;
+    const startDate = selectedRange?.start ?? '';
+    const endDate = selectedRange?.end ?? '';
+    const guests =
+      Number(pdfAdults || 0) + Number(pdfKids || 0) + Number(pdfBabies || 0);
+    const partialPayment = Number(pdfPartialPayment || 0);
+    const total = selectedCosts.finalTotal;
+    const remainingBalance = Math.max(total - partialPayment, 0);
+
+    return {
+      startDate,
+      endDate,
+      nights,
+      guests,
+      mainGuest: pdfFullName.trim(),
+      totals: {
+        accommodation: selectedCosts.total,
+        cleaning: cleaningCost,
+        total,
+        deposit: securityDeposit,
+        partialPayment,
+        remainingBalance,
+        paymentDate: pdfPartialPaymentDate || undefined,
+        balanceDueDate: pdfBalanceDueDate || undefined,
+      },
+    } satisfies PdfData;
+  }, [
+    selected,
+    selectedRange,
+    pdfAdults,
+    pdfKids,
+    pdfBabies,
+    pdfPartialPayment,
+    pdfFullName,
+    selectedCosts,
+    cleaningCost,
+    securityDeposit,
+    pdfPartialPaymentDate,
+    pdfBalanceDueDate,
+  ]);
+
   return (
     <div className="w-full px-2 sm:px-3 py-8 space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -662,6 +971,241 @@ const AdminCalendarPage = () => {
                   {t.calendarApply}
                 </Button>
               </div>
+
+              <Dialog open={pdfOpen} onOpenChange={setPdfOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    className="cursor-pointer w-full mt-4"
+                    variant="secondary"
+                    disabled={!selected.size}
+                  >
+                    {t.calendarPdfButton}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="w-[94vw] sm:max-w-[1200px] max-h-[85vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>{t.calendarPdfTitle}</DialogTitle>
+                  </DialogHeader>
+
+                  <div className="grid gap-6 md:grid-cols-[1fr_1.2fr]">
+                    <div className="space-y-3">
+                      <div className="text-base font-semibold">
+                        {t.calendarPdfGuestTitle}
+                      </div>
+                      <Input
+                        type="text"
+                        value={pdfFullName}
+                        onChange={(e) => setPdfFullName(e.target.value)}
+                        placeholder={t.bookingNamePlaceholder}
+                      />
+                      <Input
+                        type="email"
+                        value={pdfEmail}
+                        onChange={(e) => setPdfEmail(e.target.value)}
+                        placeholder={t.bookingEmailPlaceholder}
+                      />
+                      <Input
+                        type="tel"
+                        value={pdfPhone}
+                        onChange={(e) => setPdfPhone(e.target.value)}
+                        placeholder={t.bookingPhonePlaceholder}
+                      />
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          value={pdfAdults}
+                          onChange={(e) => setPdfAdults(e.target.value)}
+                          placeholder={t.bookingAdultsPlaceholder}
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          value={pdfKids}
+                          onChange={(e) => setPdfKids(e.target.value)}
+                          placeholder={t.bookingKidsPlaceholder}
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          value={pdfBabies}
+                          onChange={(e) => setPdfBabies(e.target.value)}
+                          placeholder={t.bookingBabiesPlaceholder}
+                        />
+                      </div>
+
+                      <div className="text-base font-semibold pt-2">
+                        {t.calendarPdfPaymentTitle}
+                      </div>
+                      <Input
+                        type="number"
+                        value={pdfPartialPayment}
+                        onChange={(e) => setPdfPartialPayment(e.target.value)}
+                        placeholder={t.calendarPdfPartialPayment}
+                      />
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                        <span className="text-sm text-foreground/70">
+                          {t.calendarPdfPaymentDate}
+                        </span>
+                        <Input
+                          type="date"
+                          value={pdfPartialPaymentDate}
+                          onChange={(e) =>
+                            setPdfPartialPaymentDate(e.target.value)
+                          }
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                        <span className="text-sm text-foreground/70">
+                          {t.calendarPdfBalanceDate}
+                        </span>
+                        <Input
+                          type="date"
+                          value={pdfBalanceDueDate}
+                          onChange={(e) => setPdfBalanceDueDate(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="text-base font-semibold pt-2">
+                        {t.calendarPdfLanguagesTitle}
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        {LANGS.map((lng) => (
+                          <label
+                            key={lng}
+                            className="flex items-center gap-2 text-sm cursor-pointer"
+                          >
+                            <Checkbox
+                              checked={pdfLanguages.has(lng)}
+                              onCheckedChange={(value) => {
+                                setPdfLanguages((prev) => {
+                                  const next = new Set(prev);
+                                  if (value === true) next.add(lng);
+                                  else next.delete(lng);
+                                  return next;
+                                });
+                              }}
+                            />
+                            <span>{lng.toUpperCase()}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="text-base font-semibold">
+                        {t.bookingOverviewTitle}
+                      </div>
+                      {selectedCosts.costLines.map((line, idx) => (
+                        <div
+                          key={`pdf-preview-${line.cost}-${idx}`}
+                          className="grid grid-cols-[1fr_auto_1fr] items-center text-sm gap-2"
+                        >
+                          <span className="text-left">
+                            {line.count}{' '}
+                            {line.count > 1
+                              ? t.calendarDayPlural
+                              : t.calendarDaySingular}
+                          </span>
+                          <span className="text-center text-foreground/60">
+                            {formatRangeDate(line.start)} –{' '}
+                            {formatRangeDate(line.end)}
+                          </span>
+                          <span className="text-right">
+                            €{line.cost} {t.calendarEach} • €{line.total}
+                          </span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between font-semibold">
+                        <span>{t.calendarSubtotalLabel}</span>
+                        <span>€{selectedCosts.total}</span>
+                      </div>
+                      {selectedCosts.discountLines.length ? (
+                        <>
+                          <div className="space-y-1 text-sm">
+                            {selectedCosts.discountLines.map((line, idx) => (
+                              <div
+                                key={`pdf-preview-discount-${idx}`}
+                                className="grid grid-cols-[1fr_auto_1fr] items-center gap-2"
+                              >
+                                <span className="text-left">
+                                  {line.days}{' '}
+                                  {line.days > 1
+                                    ? t.calendarDayPlural
+                                    : t.calendarDaySingular}{' '}
+                                  {line.percent}% {t.calendarDiscountLabel}
+                                </span>
+                                <span className="text-center text-foreground/60">
+                                  {formatRangeDate(line.start)} –{' '}
+                                  {formatRangeDate(line.end)}
+                                </span>
+                                <span className="text-right">
+                                  -€{line.amount}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-between font-semibold">
+                            <span>{t.calendarTotalDiscountLabel}</span>
+                            <span>
+                              -€
+                              {selectedCosts.discountLines.reduce(
+                                (sum, line) => sum + line.amount,
+                                0,
+                              )}
+                            </span>
+                          </div>
+                        </>
+                      ) : null}
+                      <div className="flex justify-between font-semibold">
+                        <span>{t.calendarCleaningCostLabel}</span>
+                        <span>€{cleaningCost}</span>
+                      </div>
+                      <div className="flex justify-between font-semibold text-xl">
+                        <span>{t.calendarTotalLabel}</span>
+                        <span>€{selectedCosts.finalTotal}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <DialogClose asChild>
+                      <Button variant="ghost" className="cursor-pointer">
+                        {t.dialogClose}
+                      </Button>
+                    </DialogClose>
+                    <div className="pointer-events-auto">
+                      {pdfCanGenerate ? (
+                        <PDFDownloadLink
+                          document={
+                            <ReservationPdf
+                              languages={pdfLanguagesList}
+                              data={pdfData}
+                            />
+                          }
+                          fileName="reservation.pdf"
+                        >
+                          {({ loading }) => (
+                            <Button
+                              className="cursor-pointer"
+                              disabled={loading}
+                            >
+                              {loading
+                                ? t.calendarPdfGenerating
+                                : t.calendarPdfGenerate}
+                            </Button>
+                          )}
+                        </PDFDownloadLink>
+                      ) : (
+                        <Button className="cursor-pointer" disabled>
+                          {t.calendarPdfGenerate}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         </div>
