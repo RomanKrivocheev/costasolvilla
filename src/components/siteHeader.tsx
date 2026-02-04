@@ -116,7 +116,6 @@ const SiteHeader = () => {
       { href: '/overview', label: t.navOverview },
       { href: '/fuengirola-city', label: t.navFuengirolaCity },
       { href: '/map', label: t.navMap },
-      { href: '/prices', label: t.navPrices },
       { href: '/gallery', label: t.navGallery },
     ],
     [t],

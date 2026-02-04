@@ -10,14 +10,7 @@ const HomePage = () => {
 
   return (
     <div>
-      <FolderSlider
-        folder="HomeSlider"
-        autoplay
-        ctaLabel={t.ctaBookNow}
-        onCtaClick={() => {
-          // booking logic
-        }}
-      />
+      <FolderSlider folder="HomeSlider" autoplay />
 
       <HomeIntroBlocks />
 

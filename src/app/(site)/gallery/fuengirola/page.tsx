@@ -101,7 +101,7 @@ const GalleryCard = ({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <FolderSlider folder={sliderFolder} showCta={false} />
+        <FolderSlider folder={sliderFolder} />
 
         <p className="text-sm text-foreground/70">{expanded}</p>
       </DialogContent>

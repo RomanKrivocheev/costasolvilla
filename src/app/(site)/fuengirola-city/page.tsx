@@ -98,7 +98,7 @@ const FuengirolaCard = ({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <FolderSlider folder={sliderFolder} showCta={false} />
+        <FolderSlider folder={sliderFolder} />
 
         <p className="text-sm text-foreground/70">{expanded}</p>
       </DialogContent>
@@ -142,10 +142,6 @@ const FuengirolaCityPage = () => {
     <div>
       <FolderSlider
         folder="FuengirolaSlider"
-        ctaLabel={t.ctaBookNow}
-        onCtaClick={() => {
-          // booking logic
-        }}
       />
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 mt-5 space-y-2">

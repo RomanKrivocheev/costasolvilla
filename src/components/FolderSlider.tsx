@@ -17,17 +17,11 @@ type Slide = {
 
 type FolderSliderProps = {
   folder: string;
-  ctaLabel?: string;
-  onCtaClick?: () => void;
-  showCta?: boolean;
   autoplay?: boolean;
 };
 
 export const FolderSlider = ({
   folder,
-  ctaLabel,
-  onCtaClick,
-  showCta = true,
   autoplay = false,
 }: FolderSliderProps) => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -168,37 +162,6 @@ export const FolderSlider = ({
           </div>
         ))}
       </div>
-
-      {/* Bottom-center CTA */}
-      {showCta && ctaLabel ? (
-        <div className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
-          <Button
-            variant="secondary"
-            className="
-    pointer-events-auto
-    cursor-pointer
-    px-5 py-3
-    text-sm font-medium
-    shadow-md
-    rounded-lg
-
-    sm:px-8 sm:py-5
-    sm:text-base
-    sm:font-semibold
-    sm:rounded-xl
-
-    md:px-10 md:py-6
-    md:text-lg
-
-    transition-transform
-    hover:scale-105
-  "
-            onClick={onCtaClick}
-          >
-            {ctaLabel}
-          </Button>
-        </div>
-      ) : null}
 
       {canNavigate && (
         <>
