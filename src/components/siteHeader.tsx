@@ -121,6 +121,7 @@ const SiteHeader = () => {
 
   const isActive = useCallback(
     (href: string) => {
+      if (pathname.startsWith('/book')) return false;
       if (href === '/gallery') return pathname.startsWith('/gallery');
       return pathname === href;
     },
@@ -223,10 +224,6 @@ const SiteHeader = () => {
             <DialogTrigger asChild>
               {/* Mobile info line (fixed, uses available space) */}
               <div className="md:hidden cursor-pointer rounded-md py-1 text-xs text-foreground/70 leading-tight flex items-center gap-1 min-w-0 transition-colors hover:bg-foreground/5">
-                <span className="min-w-0">
-                  {t.locationFuengirola}
-                </span>
-
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="inline-flex items-center gap-1">
                     {weatherCode == null ? null : (
@@ -363,7 +360,11 @@ const SiteHeader = () => {
               ref={(el) => {
                 linkRefs.current[index] = el;
               }}
-              className="text-base font-semibold transition-colors duration-300 text-foreground/70 hover:text-foreground"
+              className={`text-base font-semibold transition-colors duration-300 ${
+                isActive(item.href)
+                  ? 'text-primary'
+                  : 'text-foreground/70 hover:text-foreground'
+              }`}
             >
               {item.label}
             </Link>
@@ -461,7 +462,11 @@ const SiteHeader = () => {
                       <Button
                         key={item.href}
                         variant="ghost"
-                        className="justify-start cursor-pointer"
+                        className={`justify-start cursor-pointer ${
+                          isActive(item.href)
+                            ? 'text-primary'
+                            : 'text-foreground/80 hover:text-foreground'
+                        }`}
                         asChild
                         onClick={() => setOpenMobileNav(false)}
                       >
