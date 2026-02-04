@@ -92,7 +92,7 @@ function getWeatherLabel(code: number, t: Dictionary) {
 
 const SiteHeader = () => {
   const { t, lang, setLang } = useLanguage();
-  const { theme, toggleTheme } = useTheme();
+  const { toggleTheme } = useTheme();
   const pathname = usePathname();
   const navRef = useRef<HTMLDivElement | null>(null);
   const linkRefs = useRef<Array<HTMLAnchorElement | null>>([]);

@@ -63,121 +63,130 @@ export const HomeIntroBlocks = ({
     ? 'transition-all hover:shadow-xl cursor-pointer'
     : '';
   const sectionClass = compactDesktop
-    ? 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 my-10 space-y-12'
-    : 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 my-20 space-y-24';
+    ? 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 my-2 space-y-2'
+    : 'mx-auto max-w-7xl px-4 sm:px-6 lg:px-6 my-6 space-y-10';
   const titleClass = compactDesktop
     ? 'text-2xl md:text-3xl font-bold mb-3'
     : 'text-3xl font-bold mb-4';
   const imageClass = compactDesktop
     ? 'relative w-full aspect-square md:aspect-[4/3] lg:aspect-[3/2] overflow-hidden rounded-xl'
     : 'relative w-full aspect-square overflow-hidden rounded-xl';
+  const textClass = 'text-foreground/80 leading-relaxed';
 
   return (
     <section className={sectionClass}>
       {/* Block 1 */}
       {resolvedBlocks[0].href ? (
         <Link href={resolvedBlocks[0].href} className={`${wrapperClass} group`}>
-          <div
-            className={`${imageClass} ${hoverClass}`}
-          >
-            <CloudinaryImage
-              src={images[0].publicId}
-              alt={resolvedBlocks[0].title}
-              fill
-              sizes="(min-width: 768px) 50vw, 100vw"
-              className="object-cover"
-              quality="auto"
-              format="auto"
-            />
+          <div className="flex flex-col order-2 md:order-1">
+            <h1 className={`md:hidden ${titleClass}`}>
+              {resolvedBlocks[0].title}
+            </h1>
+            <div className={`${imageClass} ${hoverClass}`}>
+              <CloudinaryImage
+                src={images[0].publicId}
+                alt={resolvedBlocks[0].title}
+                fill
+                sizes="(min-width: 768px) 50vw, 100vw"
+                className="object-cover"
+                quality="auto"
+                format="auto"
+              />
+            </div>
           </div>
 
-          <div>
-            <h1 className={titleClass}>{resolvedBlocks[0].title}</h1>
+          <div className="order-1 md:order-2 md:pt-10">
+            <h1 className={`hidden md:block ${titleClass}`}>
+              {resolvedBlocks[0].title}
+            </h1>
             {resolvedBlocks[0].text ? (
-              <p className="text-foreground/80 leading-relaxed">
-                {resolvedBlocks[0].text}
-              </p>
+              <p className={textClass}>{resolvedBlocks[0].text}</p>
             ) : null}
           </div>
         </Link>
       ) : (
         <div className={wrapperClass}>
-          <div
-            className={`${imageClass} ${hoverClass}`}
-          >
-            <CloudinaryImage
-              src={images[0].publicId}
-              alt={resolvedBlocks[0].title}
-              fill
-              sizes="(min-width: 768px) 50vw, 100vw"
-              className="object-cover"
-              quality="auto"
-              format="auto"
-            />
+          <div className="flex flex-col order-2 md:order-1">
+            <h1 className={`md:hidden ${titleClass}`}>
+              {resolvedBlocks[0].title}
+            </h1>
+            <div className={`${imageClass} ${hoverClass}`}>
+              <CloudinaryImage
+                src={images[0].publicId}
+                alt={resolvedBlocks[0].title}
+                fill
+                sizes="(min-width: 768px) 50vw, 100vw"
+                className="object-cover"
+                quality="auto"
+                format="auto"
+              />
+            </div>
           </div>
 
-          <div>
-            <h1 className={titleClass}>{resolvedBlocks[0].title}</h1>
+          <div className="order-1 md:order-2 md:pt-10">
+            <h1 className={`hidden md:block ${titleClass}`}>
+              {resolvedBlocks[0].title}
+            </h1>
             {resolvedBlocks[0].text ? (
-              <p className="text-foreground/80 leading-relaxed">
-                {resolvedBlocks[0].text}
-              </p>
+              <p className={textClass}>{resolvedBlocks[0].text}</p>
             ) : null}
           </div>
         </div>
       )}
-
       {/* Block 2 (reversed) */}
       {resolvedBlocks[1].href ? (
-        <Link
-          href={resolvedBlocks[1].href}
-          className={`${wrapperClass} group`}
-        >
-          <div
-            className={`md:order-2 ${imageClass} ${hoverClass}`}
-          >
-            <CloudinaryImage
-              src={images[1].publicId}
-              alt={resolvedBlocks[1].title}
-              fill
-              sizes="(min-width: 768px) 50vw, 100vw"
-              className="object-cover"
-              quality="auto"
-              format="auto"
-            />
+        <Link href={resolvedBlocks[1].href} className={`${wrapperClass} group`}>
+          <div className="flex flex-col order-2 md:order-2">
+            <h1 className={`md:hidden ${titleClass}`}>
+              {resolvedBlocks[1].title}
+            </h1>
+            <div className={`${imageClass} ${hoverClass}`}>
+              <CloudinaryImage
+                src={images[1].publicId}
+                alt={resolvedBlocks[1].title}
+                fill
+                sizes="(min-width: 768px) 50vw, 100vw"
+                className="object-cover"
+                quality="auto"
+                format="auto"
+              />
+            </div>
           </div>
 
-          <div className="md:order-1">
-            <h1 className={titleClass}>{resolvedBlocks[1].title}</h1>
+          <div className="order-1 md:order-1 md:pt-10">
+            <h1 className={`hidden md:block ${titleClass}`}>
+              {resolvedBlocks[1].title}
+            </h1>
             {resolvedBlocks[1].text ? (
-              <p className="text-foreground/80 leading-relaxed">
-                {resolvedBlocks[1].text}
-              </p>
+              <p className={textClass}>{resolvedBlocks[1].text}</p>
             ) : null}
           </div>
         </Link>
       ) : (
         <div className={wrapperClass}>
-          <div
-            className={`md:order-2 ${imageClass} ${hoverClass}`}
-          >
-            <CloudinaryImage
-              src={images[1].publicId}
-              alt={resolvedBlocks[1].title}
-              fill
-              sizes="(min-width: 768px) 50vw, 100vw"
-              className="object-cover"
-              quality="auto"
-              format="auto"
-            />
+          <div className="flex flex-col order-2 md:order-2">
+            <h1 className={`md:hidden ${titleClass}`}>
+              {resolvedBlocks[1].title}
+            </h1>
+            <div className={`${imageClass} ${hoverClass}`}>
+              <CloudinaryImage
+                src={images[1].publicId}
+                alt={resolvedBlocks[1].title}
+                fill
+                sizes="(min-width: 768px) 50vw, 100vw"
+                className="object-cover"
+                quality="auto"
+                format="auto"
+              />
+            </div>
           </div>
 
-          <div className="md:order-1">
-            <h1 className={titleClass}>{resolvedBlocks[1].title}</h1>
+          <div className="order-1 md:order-1 md:pt-10">
+            <h1 className={`hidden md:block ${titleClass}`}>
+              {resolvedBlocks[1].title}
+            </h1>
             {resolvedBlocks[1].text ? (
-              <p className="text-foreground/80 leading-relaxed">
-                {resolvedBlocks[1].text}
-              </p>
+              <p className={textClass}>{resolvedBlocks[1].text}</p>
             ) : null}
           </div>
         </div>

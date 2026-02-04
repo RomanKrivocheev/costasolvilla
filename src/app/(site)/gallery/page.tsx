@@ -14,10 +14,12 @@ const GalleryPage = () => {
       blocks={[
         {
           title: t.galleryBlockFuengirolaTitle,
+          text: t.galleryBlockFuengirolaText,
           href: '/gallery/fuengirola',
         },
         {
           title: t.galleryBlockVillaTitle,
+          text: t.galleryBlockVillaText,
           href: '/gallery/villa',
         },
       ]}
