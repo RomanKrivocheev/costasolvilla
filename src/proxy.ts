@@ -16,6 +16,7 @@ const detectLang = (req: NextRequest): Lang => {
 
 export const proxy = (req: NextRequest) => {
   const url = req.nextUrl.clone();
+  const adminCookie = req.cookies.get('admin_session')?.value;
 
   if (
     url.pathname.startsWith('/_next/static') ||
@@ -35,6 +36,18 @@ export const proxy = (req: NextRequest) => {
       res.cookies.set('lang', detectLang(req), { path: '/', sameSite: 'lax' });
     }
     return res;
+  }
+
+  if (url.pathname.startsWith('/admin')) {
+    if (url.pathname === '/admin/login' && adminCookie) {
+      url.pathname = '/admin/calendar';
+      return NextResponse.redirect(url);
+    }
+
+    if (url.pathname !== '/admin/login' && !adminCookie) {
+      url.pathname = '/admin/login';
+      return NextResponse.redirect(url);
+    }
   }
 
   if (!req.cookies.get('lang')) {
