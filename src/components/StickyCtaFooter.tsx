@@ -9,7 +9,7 @@ export const StickyCtaFooter = () => {
 
   return (
     <div className="fixed sm:sticky bottom-0 inset-x-0 z-50 border-t border-foreground/10 bg-noise-footer">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-6">
+      <div className="mx-auto w-full px-2 sm:px-3">
         <div className="flex items-center py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-3">
           <div className="hidden sm:block flex-1">
             <Link
@@ -21,13 +21,18 @@ export const StickyCtaFooter = () => {
           </div>
 
           <div className="flex justify-center flex-1">
-            <Button variant="secondary" className="w-full sm:w-auto">
+            <Button
+              variant="secondary"
+              className="w-full sm:w-auto cursor-pointer"
+            >
               {t.checkAvailability}
             </Button>
           </div>
 
           <div className="hidden sm:flex flex-1 justify-end text-sm text-foreground/60">
             <span>{t.mapAddress}</span>
+            <span className="mx-2">•</span>
+            <span>{t.footerPhone}</span>
           </div>
         </div>
       </div>

@@ -20,6 +20,7 @@ type CalendarResponse = {
   defaultCost: number;
   prices: Record<string, number>;
   availability: Record<string, boolean>;
+  discounts: Record<string, number>;
 };
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -56,7 +57,18 @@ const AdminCalendarPage = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [rangeStart, setRangeStart] = useState<string | null>(null);
   const [available, setAvailable] = useState(true);
-  const [inputCost, setInputCost] = useState('100');
+  const [availableDirty, setAvailableDirty] = useState(false);
+  const [hoverRange, setHoverRange] = useState<{
+    start: string;
+    end: string;
+  } | null>(null);
+  const [discounts, setDiscounts] = useState<Record<string, string>>({
+    '4': '',
+    '5': '',
+    '6': '',
+    '7': '',
+  });
+  const [inputCost, setInputCost] = useState('');
   const [defaultCostInput, setDefaultCostInput] = useState('100');
   const [saving, setSaving] = useState(false);
 
@@ -69,6 +81,7 @@ const AdminCalendarPage = () => {
   const prices = data?.prices ?? {};
   const availability = data?.availability ?? {};
   const defaultCost = data?.defaultCost ?? 100;
+  const discountValues = data?.discounts ?? {};
 
   const cells = useMemo(() => buildCalendar(monthDate), [monthDate]);
 
@@ -77,6 +90,26 @@ const AdminCalendarPage = () => {
       setDefaultCostInput(String(data.defaultCost));
     }
   }, [data?.defaultCost]);
+
+  useEffect(() => {
+    const next = {
+      '4': discountValues['4'] != null ? String(discountValues['4']) : '',
+      '5': discountValues['5'] != null ? String(discountValues['5']) : '',
+      '6': discountValues['6'] != null ? String(discountValues['6']) : '',
+      '7': discountValues['7'] != null ? String(discountValues['7']) : '',
+    };
+
+    const same =
+      discounts['4'] === next['4'] &&
+      discounts['5'] === next['5'] &&
+      discounts['6'] === next['6'] &&
+      discounts['7'] === next['7'];
+
+    if (!same) {
+      setDiscounts(next);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discountValues]);
 
   useEffect(() => {
     setSelected(new Set());
@@ -112,40 +145,142 @@ const AdminCalendarPage = () => {
   };
 
   const selectedCosts = useMemo(() => {
-    const groups = new Map<number, number>();
     let total = 0;
-    selected.forEach((dateKey) => {
-      const cost = prices[dateKey] ?? defaultCost;
+    const dateCosts = Array.from(selected)
+      .sort()
+      .map((dateKey) => {
+        const cost = prices[dateKey] ?? defaultCost;
+        return { dateKey, cost };
+      });
+
+    dateCosts.forEach(({ cost }) => {
       total += cost;
-      groups.set(cost, (groups.get(cost) ?? 0) + 1);
     });
-    const ordered = Array.from(groups.entries()).sort((a, b) => b[0] - a[0]);
-    return { groups: ordered, total };
-  }, [selected, prices, defaultCost]);
+
+    const costLines: Array<{
+      count: number;
+      cost: number;
+      total: number;
+      start: string;
+      end: string;
+    }> = [];
+
+    for (let i = 0; i < dateCosts.length; i += 1) {
+      const current = dateCosts[i];
+      let j = i;
+      while (
+        j + 1 < dateCosts.length &&
+        dateCosts[j + 1].cost === current.cost
+      ) {
+        j += 1;
+      }
+      const count = j - i + 1;
+      const lineTotal = current.cost * count;
+      costLines.push({
+        count,
+        cost: current.cost,
+        total: lineTotal,
+        start: dateCosts[i].dateKey,
+        end: dateCosts[j].dateKey,
+      });
+      i = j;
+    }
+
+    const discountMap: Record<number, number> = {
+      4: Number(discountValues['4'] ?? 0),
+      5: Number(discountValues['5'] ?? 0),
+      6: Number(discountValues['6'] ?? 0),
+      7: Number(discountValues['7'] ?? 0),
+    };
+
+    let discountedTotal = total;
+    const discountLines: Array<{
+      days: number;
+      percent: number;
+      amount: number;
+      start: string;
+      end: string;
+    }> = [];
+    let index = 0;
+
+    const applyDiscountChunk = (days: number) => {
+      const percent = Number.isFinite(discountMap[days]) ? discountMap[days] : 0;
+      if (percent <= 0) return;
+      const slice = dateCosts.slice(index, index + days);
+      if (!slice.length) return;
+      const chunkTotal = slice.reduce((sum, item) => sum + item.cost, 0);
+      const amount = Math.round((chunkTotal * percent) / 100 * 100) / 100;
+      discountedTotal -= amount;
+      discountLines.push({
+        days,
+        percent,
+        amount,
+        start: slice[0].dateKey,
+        end: slice[slice.length - 1].dateKey,
+      });
+    };
+
+    let remaining = dateCosts.length;
+    while (remaining >= 7) {
+      applyDiscountChunk(7);
+      index += 7;
+      remaining -= 7;
+    }
+    if (remaining >= 4) {
+      applyDiscountChunk(remaining);
+      index += remaining;
+      remaining = 0;
+    }
+
+    return {
+      costLines,
+      total,
+      discountedTotal,
+      discountLines,
+    };
+  }, [selected, prices, defaultCost, discountValues]);
+
+  const selectedRange = useMemo(() => {
+    if (!selected.size) return null;
+    const dates = Array.from(selected).sort();
+    return { start: dates[0], end: dates[dates.length - 1] };
+  }, [selected]);
+
+  const formatRangeDate = (value: string) => {
+    const [y, m, d] = value.split('-');
+    if (!y || !m || !d) return value;
+    return `${d}-${m}-${y.slice(2)}`;
+  };
+
+  const isInHoverRange = (dateKey: string) => {
+    if (!hoverRange) return false;
+    return dateKey >= hoverRange.start && dateKey <= hoverRange.end;
+  };
 
   useEffect(() => {
     if (!selected.size) {
       setInputCost('');
-      return;
     }
-    setInputCost(String(selectedCosts.total));
-  }, [selected, selectedCosts.total]);
+  }, [selected]);
 
   useEffect(() => {
     if (!selected.size) {
       setAvailable(true);
+      setAvailableDirty(false);
       return;
     }
     const hasUnavailable = Array.from(selected).some(
       (dateKey) => availability[dateKey] === false,
     );
     setAvailable(!hasUnavailable);
+    setAvailableDirty(false);
   }, [selected, availability]);
 
   const applyCostToSelected = async () => {
     if (!selected.size) return;
-    const value = Number(inputCost);
-    if (!Number.isFinite(value)) return;
+    const costValue = inputCost.trim() === '' ? null : Number(inputCost);
+    const costProvided = costValue !== null && Number.isFinite(costValue);
+    if (!costProvided && !availableDirty) return;
 
     setSaving(true);
     try {
@@ -155,12 +290,14 @@ const AdminCalendarPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           dates: Array.from(selected),
-          cost: value,
-          available,
+          ...(costProvided ? { cost: costValue } : {}),
+          ...(availableDirty ? { available } : {}),
         }),
       });
       setSelected(new Set());
+      setInputCost('');
       setRangeStart(null);
+      setAvailableDirty(false);
       await mutate();
     } finally {
       setSaving(false);
@@ -187,6 +324,31 @@ const AdminCalendarPage = () => {
     }
   };
 
+  const saveDiscounts = async () => {
+    const payload: Record<string, number> = {};
+    ['4', '5', '6', '7'].forEach((key) => {
+      const raw = discounts[key];
+      const value = Number(raw);
+      if (Number.isFinite(value)) {
+        payload[key] = value;
+      }
+    });
+
+    setSaving(true);
+    try {
+      await fetch('/api/admin/calendar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          discounts: payload,
+        }),
+      });
+      await mutate();
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const monthLabel = useMemo(() => {
     const monthName =
       t.calendarMonths?.[monthDate.getMonth()] ??
@@ -205,7 +367,7 @@ const AdminCalendarPage = () => {
   ];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
+    <div className="w-full px-2 sm:px-3 py-8 space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="text-2xl font-semibold">{t.calendarTitle}</div>
         <div className="hidden lg:flex">
@@ -245,8 +407,8 @@ const AdminCalendarPage = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <Card>
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] items-stretch">
+        <Card className="h-full">
           <CardHeader>
             <CardTitle>{t.calendarAvailabilityTitle}</CardTitle>
           </CardHeader>
@@ -304,6 +466,7 @@ const AdminCalendarPage = () => {
                 const selectedDay = selected.has(key);
                 const cost = prices[key];
                 const isAvailable = availability[key] !== false;
+                const inHover = isInHoverRange(key);
                 return (
                   <button
                     key={key}
@@ -315,7 +478,7 @@ const AdminCalendarPage = () => {
                         : isAvailable
                           ? 'border-foreground/10 hover:border-primary/40 hover:bg-foreground/5'
                           : 'border-foreground/10 bg-foreground/5 text-foreground/40'
-                    } cursor-pointer`}
+                    } ${inHover ? 'ring-2 ring-primary/50 shadow-[0_0_12px_rgba(99,102,241,0.35)]' : ''} cursor-pointer`}
                   >
                     <div className="font-medium">{date.getDate()}</div>
                     <div className="text-[11px] text-foreground/70">
@@ -328,63 +491,93 @@ const AdminCalendarPage = () => {
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t.calendarDefaultTitle}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="text-sm text-foreground/70">
-                {t.calendarCurrentLabel} €{defaultCost}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  value={defaultCostInput}
-                  onChange={(e) => setDefaultCostInput(e.target.value)}
-                />
-                <Button
-                  onClick={saveDefaultCost}
-                  disabled={saving}
-                  className="cursor-pointer"
-                >
-                  {t.calendarSave}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
+        <div className="space-y-4 h-full">
+          <Card className="h-full flex flex-col">
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>{t.calendarSelectedTitle}</CardTitle>
+              <div className="text-sm text-foreground/70">
+                {selected.size} {t.calendarDaysLabel}
+              </div>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="flex flex-col flex-1">
               {selected.size === 0 ? (
                 <div className="text-sm text-foreground/70">
                   {t.calendarNoneSelected}
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {selectedCosts.groups.map(([cost, count]) => (
-                    <div
-                      key={`${cost}-${count}`}
-                      className="flex justify-between text-sm"
-                    >
-                      <span>
-                        {count}{' '}
-                        {count > 1
-                          ? t.calendarDayPlural
-                          : t.calendarDaySingular}{' '}
-                        €{cost * count} (€{cost} {t.calendarEach})
-                      </span>
-                      <span>€{cost * count}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between font-semibold">
-                    <span>{t.calendarTotal}</span>
-                    <span>€{selectedCosts.total}</span>
+                <>
+                  <div className="space-y-2">
+                    {selectedCosts.costLines.map((line, idx) => (
+                      <div
+                        key={`${line.cost}-${line.count}-${idx}`}
+                        className="grid grid-cols-[auto_1fr_auto] items-center text-sm gap-2"
+                        onMouseEnter={() =>
+                          setHoverRange({ start: line.start, end: line.end })
+                        }
+                        onMouseLeave={() => setHoverRange(null)}
+                      >
+                        <span className="cursor-default">
+                          {line.count}{' '}
+                          {line.count > 1
+                            ? t.calendarDayPlural
+                            : t.calendarDaySingular}
+                        </span>
+                        <span className="text-foreground/60 cursor-default text-center">
+                          {formatRangeDate(line.start)} –{' '}
+                          {formatRangeDate(line.end)}
+                        </span>
+                        <span className="cursor-default text-right">
+                          €{line.cost} {t.calendarEach} • €{line.total}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                </div>
+
+                  <div className="mt-auto pt-4 space-y-2">
+                    <div className="flex justify-between font-semibold">
+                      <span>{t.calendarTotal}</span>
+                      <span>€{selectedCosts.total}</span>
+                    </div>
+                    {selectedCosts.discountLines.length ? (
+                      <div className="space-y-1 text-sm">
+                        {selectedCosts.discountLines.map((line, idx) => (
+                          <div
+                            key={`${line.days}-${idx}`}
+                            className="grid grid-cols-[auto_1fr_auto] items-center gap-2"
+                            onMouseEnter={() =>
+                              setHoverRange({ start: line.start, end: line.end })
+                            }
+                            onMouseLeave={() => setHoverRange(null)}
+                          >
+                            <span className="cursor-default">
+                              {line.days}{' '}
+                              {line.days > 1
+                                ? t.calendarDayPlural
+                                : t.calendarDaySingular}{' '}
+                              {line.percent}% {t.calendarDiscountLabel}
+                            </span>
+                            <span className="text-foreground/60 cursor-default text-center">
+                              {formatRangeDate(line.start)} –{' '}
+                              {formatRangeDate(line.end)}
+                            </span>
+                            <span className="cursor-default text-right">
+                              -€{line.amount}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    {selectedCosts.discountLines.length ? (
+                      <>
+                        <div className="flex justify-between font-semibold mb-2">
+                          <span>{t.calendarTotalAfterDiscount}</span>
+                          <span>€{selectedCosts.discountedTotal}</span>
+                        </div>
+                        <hr className="border-foreground/20 my-2" />
+                      </>
+                    ) : null}
+                  </div>
+                </>
               )}
 
               <div className="flex gap-2">
@@ -402,9 +595,10 @@ const AdminCalendarPage = () => {
                   <div className="mt-1">
                     <Checkbox
                       checked={available}
-                      onCheckedChange={(value) =>
-                        setAvailable(value === true)
-                      }
+                      onCheckedChange={(value) => {
+                        setAvailable(value === true);
+                        setAvailableDirty(true);
+                      }}
                       className="cursor-pointer"
                       disabled={!selected.size}
                     />
@@ -421,6 +615,66 @@ const AdminCalendarPage = () => {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.calendarDiscountTitle}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {['4', '5', '6', '7'].map((dayKey) => (
+              <div key={dayKey} className="flex items-center gap-2">
+                <div className="w-16 text-sm text-foreground/70">
+                  {dayKey} {t.calendarDayPlural}
+                </div>
+                <Input
+                  type="number"
+                  value={discounts[dayKey] ?? ''}
+                  onChange={(e) =>
+                    setDiscounts((prev) => ({
+                      ...prev,
+                      [dayKey]: e.target.value,
+                    }))
+                  }
+                />
+                <span className="text-sm text-foreground/70">%</span>
+              </div>
+            ))}
+            <Button
+              onClick={saveDiscounts}
+              disabled={saving}
+              className="cursor-pointer w-full"
+            >
+              {t.calendarSave}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.calendarDefaultTitle}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-sm text-foreground/70">
+              {t.calendarCurrentLabel} €{defaultCost}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                value={defaultCostInput}
+                onChange={(e) => setDefaultCostInput(e.target.value)}
+              />
+              <Button
+                onClick={saveDefaultCost}
+                disabled={saving}
+                className="cursor-pointer"
+              >
+                {t.calendarSave}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="flex justify-center lg:hidden">

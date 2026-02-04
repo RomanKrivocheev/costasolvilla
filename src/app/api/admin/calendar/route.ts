@@ -4,6 +4,7 @@ import { kv } from '@vercel/kv';
 import { hasAdminSession } from '@/lib/admin-auth';
 
 const DEFAULT_COST_KEY = 'calendar:defaultCost';
+const DISCOUNTS_KEY = 'calendar:discounts';
 
 const buildDateKey = (date: string) => `calendar:date:${date}`;
 
@@ -35,6 +36,8 @@ export const GET = async (req: Request) => {
       number | { cost?: number; available?: boolean } | null
     >;
     const defaultCost = (await kv.get<number>(DEFAULT_COST_KEY)) ?? 100;
+    const discounts =
+      (await kv.get<Record<string, number>>(DISCOUNTS_KEY)) ?? {};
 
     const prices: Record<string, number> = {};
     const availability: Record<string, boolean> = {};
@@ -54,7 +57,13 @@ export const GET = async (req: Request) => {
       }
     });
 
-    return NextResponse.json({ year, defaultCost, prices, availability });
+    return NextResponse.json({
+      year,
+      defaultCost,
+      prices,
+      availability,
+      discounts,
+    });
   } catch (error) {
     console.error('GET /api/admin/calendar failed', {
       message: error instanceof Error ? error.message : String(error),
@@ -75,6 +84,7 @@ export const POST = async (req: Request) => {
       cost?: number;
       available?: boolean;
       defaultCost?: number;
+      discounts?: Record<string, number>;
     };
 
     const tasks: Array<Promise<unknown>> = [];
@@ -82,16 +92,42 @@ export const POST = async (req: Request) => {
     if (typeof body.defaultCost === 'number') {
       tasks.push(kv.set(DEFAULT_COST_KEY, body.defaultCost));
     }
+    if (body.discounts && typeof body.discounts === 'object') {
+      tasks.push(kv.set(DISCOUNTS_KEY, body.discounts));
+    }
 
-    if (Array.isArray(body.dates) && typeof body.cost === 'number') {
-      for (const date of body.dates) {
-        tasks.push(
-          kv.set(buildDateKey(date), {
-            cost: body.cost,
-            available:
-              typeof body.available === 'boolean' ? body.available : true,
-          }),
-        );
+    if (Array.isArray(body.dates) && body.dates.length) {
+      const hasCost = typeof body.cost === 'number';
+      const hasAvailability = typeof body.available === 'boolean';
+
+      if (hasCost || hasAvailability) {
+        let existing: Array<number | { cost?: number; available?: boolean } | null> =
+          [];
+        if (!hasCost && hasAvailability) {
+          const keys = body.dates.map(buildDateKey);
+          existing = (await kv.mget(keys)) as Array<
+            number | { cost?: number; available?: boolean } | null
+          >;
+        }
+
+        body.dates.forEach((date, index) => {
+          let cost: number | undefined = undefined;
+          if (hasCost) {
+            cost = body.cost as number;
+          } else if (existing[index] != null) {
+            const current = existing[index];
+            if (typeof current === 'number') cost = current;
+            if (current && typeof current === 'object' && typeof current.cost === 'number') {
+              cost = current.cost;
+            }
+          }
+
+          const payload: { cost?: number; available?: boolean } = {};
+          if (typeof cost === 'number') payload.cost = cost;
+          if (hasAvailability) payload.available = body.available as boolean;
+
+          tasks.push(kv.set(buildDateKey(date), payload));
+        });
       }
     }
 

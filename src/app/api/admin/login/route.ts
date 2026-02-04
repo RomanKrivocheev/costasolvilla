@@ -29,7 +29,6 @@ export const POST = async (req: Request) => {
 
   const { password } = (await req.json()) as { password?: string };
   const expected = process.env.ADMIN_PASSWORD;
-  // console.log('Admin login attempt from', expected);
 
   if (!expected || !password || password !== expected) {
     return NextResponse.json({ error: 'Invalid password' }, { status: 401 });
