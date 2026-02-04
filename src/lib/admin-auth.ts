@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 
 export const ADMIN_COOKIE_NAME = 'admin_session';
 
-export const hasAdminSession = () => {
-  const cookieStore = cookies();
-  return !!cookieStore.get(ADMIN_COOKIE_NAME)?.value;
-};
+export type CookieStore = Awaited<ReturnType<typeof cookies>>;
+
+export const hasAdminSession = (cookieStore: CookieStore) =>
+  !!cookieStore.get(ADMIN_COOKIE_NAME)?.value;
