@@ -38,7 +38,7 @@ export const POST = async (req: Request) => {
   res.cookies.set(ADMIN_COOKIE_NAME, '1', {
     httpOnly: true,
     secure: true,
-    sameSite: 'strict',
+    sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 7,
   });
